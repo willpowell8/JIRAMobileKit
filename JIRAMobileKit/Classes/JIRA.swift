@@ -323,7 +323,14 @@ public class JIRA {
                 }
                 do {
                     let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? [AnyHashable:Any]
-                    
+                    var projects = [JIRAProject]()
+                    if let projectsData = json?["projects"] as? [[AnyHashable:Any]]{
+                        projectsData.forEach({ (projectData) in
+                            let project = JIRAProject()
+                            project.applyData(data: projectData)
+                            projects.append(project)
+                        })
+                    }
                     completion(true,json)
                 } catch {
                     print("error serializing JSON: \(error)")
