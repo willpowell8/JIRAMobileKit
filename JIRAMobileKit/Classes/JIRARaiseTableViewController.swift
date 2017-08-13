@@ -11,6 +11,8 @@ import UIKit
 class JIRARaiseTableViewController: UITableViewController {
 
     var closeAction:Bool = false
+    var project:JIRAProject?
+    var issueType:JIRAIssueType?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,8 +36,12 @@ class JIRARaiseTableViewController: UITableViewController {
                 loginVC.delegate = self
                 self.present(loginVC, animated: true, completion: nil)
             }else{
-                JIRA.shared.createMeta({ (error, data) in
-                    print("Returned")
+                JIRA.shared.createMeta({ (error, project) in
+                    self.project = project
+                    self.issueType = project?.issueTypes?[0]
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                    }
                 })
             }
         }
@@ -56,25 +62,26 @@ class JIRARaiseTableViewController: UITableViewController {
 
     // MARK: - Table view data source
 
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-        return 0
-    }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+   override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
+        if let fields = issueType?.fields {
+            return fields.count
+        }
         return 0
     }
 
-    /*
+    
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-
+        let cell = UITableViewCell()//tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
+        if let fields = issueType?.fields {
+            let field = fields[indexPath.row]
+            cell.textLabel?.text = field.name
+            
+        }
         // Configure the cell...
 
         return cell
     }
-    */
 
     /*
     // Override to support conditional editing of the table view.

@@ -33,6 +33,8 @@ public class JIRA {
         }
     }
     
+    var projects:[JIRAProject]?
+    
     internal static func getBundle()->Bundle{
         let podBundle =  Bundle.init(for: JIRA.self)
         let bundleURL = podBundle.url(forResource: "JIRAMobileKit" , withExtension: "bundle")
@@ -309,7 +311,7 @@ public class JIRA {
         task.resume()
     }
     
-    internal func createMeta(_ completion: @escaping (_ error:Bool, _ meta:[AnyHashable:Any]?) -> Void){
+    internal func createMeta(_ completion: @escaping (_ error:Bool, _ project:JIRAProject?) -> Void){
         let url = URL(string: "\(host!)\(JIRA.url_issue_createmeta)")!
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -331,7 +333,16 @@ public class JIRA {
                             projects.append(project)
                         })
                     }
-                    completion(true,json)
+                    self.projects = projects
+                    let currentProject = self.projects?.filter({ (project) -> Bool in
+                        return project.key == self.project
+                    })
+                    if currentProject?.count == 1 {
+                        completion(true,currentProject?[0])
+                    }else{
+                        completion(false,nil)
+                    }
+                    
                 } catch {
                     print("error serializing JSON: \(error)")
                     completion(false,nil)
