@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MBProgressHUD
 
 class JIRARaiseTableViewController: UITableViewController {
 
@@ -36,10 +37,14 @@ class JIRARaiseTableViewController: UITableViewController {
                 loginVC.delegate = self
                 self.present(loginVC, animated: true, completion: nil)
             }else{
+                let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+                hud.mode = .indeterminate
+                hud.label.text = "Loading ..."
                 JIRA.shared.createMeta({ (error, project) in
                     self.project = project
                     self.issueType = project?.issueTypes?[0]
                     DispatchQueue.main.async {
+                        hud.hide(animated: true)
                         self.tableView.reloadData()
                     }
                 })
