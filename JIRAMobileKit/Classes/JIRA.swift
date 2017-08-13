@@ -14,8 +14,10 @@ public class JIRA {
     public static var shared = JIRA()
 
     // END POINTS
-    private static var kOCCreateIssuePath  = "rest/api/2/issue";
-    private static var kOCAttachPath       = "rest/api/2/issue/%@/attachments";
+    private static let url_issue  = "rest/api/2/issue";
+    private static let url_issue_attachments = "rest/api/2/issue/%@/attachments";
+    private static let url_issue_createmeta = "/rest/api/2/issue/createmeta?expand=projects.issuetypes.fields"
+    private static let url_myself = "/rest/api/2/myself"
     
     private var _host:String?
     public var host:String? {
@@ -44,14 +46,14 @@ public class JIRA {
     
     public func raise(){
         if let rootController = UIApplication.shared.keyWindow?.rootViewController {
-            let newVC: JIRAViewController = JIRAViewController(nibName: "JIRAWindow", bundle: JIRA.getBundle())
+            let newVC = JIRARaiseTableViewController() //JIRAViewController = JIRAViewController(nibName: "JIRAWindow", bundle: JIRA.getBundle())
             var currentController: UIViewController! = rootController
             while( currentController.presentedViewController != nil ) {
                 
                 currentController = currentController.presentedViewController
             }
             let image = UIApplication.shared.keyWindow?.capture()
-            newVC.image = image
+            //newVC.image = image
             
             let nav = UINavigationController(rootViewController: newVC);
             nav.navigationBar.barStyle = .blackOpaque
@@ -118,7 +120,7 @@ public class JIRA {
     }
     
     public func login(username:String, password:String, completion: @escaping (_ completed:Bool) -> Void) {
-        let url = URL(string: "https://\(host)/rest/api/2/myself")!
+        let url = URL(string: "\(host!)\(JIRA.url_myself)")!
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -179,7 +181,7 @@ public class JIRA {
     internal func createIssue(issueType:String, issueSummary:String, issueDescription:String, image:UIImage?, completion: @escaping (_ completed:Bool) -> Void){
         
         
-        let url = URL(string: "https://\(host)/\(JIRA.kOCCreateIssuePath)")!
+        let url = URL(string: "\(host!)/\(JIRA.url_issue)")!
         let data = getParameters(issueType: "Bug", issueSummary: issueSummary, issueDescription: issueDescription)
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -217,7 +219,7 @@ public class JIRA {
     
     public func getIssueData(id:String, issueType:String, issueSummary:String, issueDescription:String, image:UIImage?, completion: @escaping (_ completed:Bool) -> Void){
         
-        let url = URL(string: "https://\(host)/rest/api/2/issue/\(id)/")!
+        let url = URL(string: "\(host!)/rest/api/2/issue/\(id)/")!
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("nocheck", forHTTPHeaderField: "X-Atlassian-Token")
@@ -244,10 +246,10 @@ public class JIRA {
         task.resume()
     }
     
-    public func postImage(id:String, issueType:String, issueSummary:String, issueDescription:String, image:UIImage?, completion: @escaping (_ completed:Bool) -> Void)
+    internal func postImage(id:String, issueType:String, issueSummary:String, issueDescription:String, image:UIImage?, completion: @escaping (_ completed:Bool) -> Void)
     {
         
-        let url = URL(string: "https://\(host)/rest/api/2/issue/\(id)/attachments")!
+        let url = URL(string: "\(host!)/rest/api/2/issue/\(id)/attachments")!
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("nocheck", forHTTPHeaderField: "X-Atlassian-Token")
@@ -291,12 +293,9 @@ public class JIRA {
         let task = session().dataTask(with:request) { data, response, error in
             
             if let _ = response as? HTTPURLResponse {
-                print("COMPLETED UPLOAD")
-                print("WELCOME")
                 if let jsonString = String(data: data!, encoding: .utf8) {
                     print(jsonString)
                 }
-                print("DONE")
                 do {
                     let _ = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
                     completion(true)
@@ -307,6 +306,31 @@ public class JIRA {
             }
         }
         
+        task.resume()
+    }
+    
+    internal func createMeta(_ completion: @escaping (_ error:Bool, _ meta:[AnyHashable:Any]?) -> Void){
+        let url = URL(string: "\(host!)\(JIRA.url_issue_createmeta)")!
+        var request = URLRequest(url: url)
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "GET"
+        let task = session().dataTask(with:request) { data, response, error in
+            
+            if let _ = response as? HTTPURLResponse {
+                if let jsonString = String(data: data!, encoding: .utf8) {
+                    print(jsonString)
+                }
+                do {
+                    let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? [AnyHashable:Any]
+                    
+                    completion(true,json)
+                } catch {
+                    print("error serializing JSON: \(error)")
+                    completion(false,nil)
+                }
+            }
+        }
         task.resume()
     }
     

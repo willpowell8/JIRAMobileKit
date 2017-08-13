@@ -20,7 +20,7 @@ public class JIRAViewController: UIViewController,JIRALoginViewControllerDelegat
     public var image:UIImage? {
         didSet{
             DispatchQueue.main.async {
-                self.imageView.image = self.image
+                //self.imageView.image = self.image
             }
         }
     }
@@ -49,6 +49,10 @@ public class JIRAViewController: UIViewController,JIRALoginViewControllerDelegat
                 let loginVC = JIRALoginViewController(nibName: "JIRALoginViewController", bundle: JIRA.getBundle())
                 loginVC.delegate = self
                 self.present(loginVC, animated: true, completion: nil)
+            }else{
+                JIRA.shared.createMeta({ (error, data) in
+                    
+                })
             }
         }
     }

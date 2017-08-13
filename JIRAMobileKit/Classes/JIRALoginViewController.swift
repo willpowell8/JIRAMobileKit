@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MBProgressHUD
 
 protocol JIRALoginViewControllerDelegate {
     func loginDismissed()
@@ -39,15 +40,29 @@ class JIRALoginViewController: UIViewController {
     
     @IBAction func login(){
         if let username = self.usernameField.text, let password = self.passwordField.text {
+            
+            let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+            hud.mode = .indeterminate
+            hud.label.text = "Logging in ..."
             JIRA.shared.login(username: username, password: password) { (valid) in
-                if valid == true {
-                    print("VALID")
-                    self.dismiss(animated: true, completion: nil)
-                }else{
-                    print("NOT VALID")
+                DispatchQueue.main.async {
+                    hud.hide(animated: true)
+                    if valid == true {
+                        self.dismiss(animated: true, completion: nil)
+                    }else{
+                        self.loginFailure()
+                    }
                 }
+                
             }
         }
+    }
+    
+    func loginFailure(){
+        let alert = UIAlertController(title: "Login Failure", message: "Invalid Credentials. You may need to login to jira on the web to reset any Captcha on multiple failures", preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Continue", style: .default) { action in
+            // perhaps use action.title here
+        })
     }
 
 }
