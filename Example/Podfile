@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'JIRAMobileKit_Example' do
+  pod 'JIRAMobileKit', :path => '../'
+
+  target 'JIRAMobileKit_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end
