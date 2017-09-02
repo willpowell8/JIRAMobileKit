@@ -2,7 +2,7 @@
 //  JiraImageViewController.swift
 //  Pods
 //
-//  Created by Will Powell on 09/08/2017.
+//  Created by Will Powell on 30/08/2017.
 //
 //
 

@@ -13,8 +13,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        JIRA.shared.setup(host: "https://tracking.keytree.net", project: "KC")
-        // Do any additional setup after loading the view, typically from a nib.
+        JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
     }
 
     override func didReceiveMemoryWarning() {

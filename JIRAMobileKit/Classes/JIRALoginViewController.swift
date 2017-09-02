@@ -2,7 +2,7 @@
 //  JIRALoginViewController.swift
 //  Pods
 //
-//  Created by Will Powell on 08/08/2017.
+//  Created by Will Powell on 30/08/2017.
 //
 //
 
@@ -60,7 +60,7 @@ class JIRALoginViewController: UIViewController {
     
     func loginFailure(){
         let alert = UIAlertController(title: "Login Failure", message: "Invalid Credentials. You may need to login to jira on the web to reset any Captcha on multiple failures", preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "Continue", style: .default) { action in
+        alert.addAction(UIAlertAction(title: "Try Again", style: .default) { action in
             // perhaps use action.title here
         })
     }

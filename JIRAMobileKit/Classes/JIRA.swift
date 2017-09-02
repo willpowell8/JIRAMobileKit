@@ -2,7 +2,7 @@
 //  JIRA.swift
 //  Pods
 //
-//  Created by Will Powell on 06/02/2017.
+//  Created by Will Powell on 30/08/2017.
 //
 //
 
@@ -33,6 +33,13 @@ public class JIRA {
         }
     }
     
+    private var _defaultIssueType:String?
+    public var defaultIssueType:String? {
+        get{
+            return _defaultIssueType
+        }
+    }
+    
     var projects:[JIRAProject]?
     
     internal static func getBundle()->Bundle{
@@ -41,47 +48,26 @@ public class JIRA {
         return Bundle(url: bundleURL!)!
     }
     
-    public func setup(host:String, project:String){
+    public func setup(host:String, project:String, defaultIssueType:String? = "Bug", defaultValues:[String:Any]? = nil){
         self._host = host
         self._project = project
+        self._defaultIssueType = defaultIssueType
     }
     
     public func raise(){
         if let rootController = UIApplication.shared.keyWindow?.rootViewController {
-            let newVC = JIRARaiseTableViewController() //JIRAViewController = JIRAViewController(nibName: "JIRAWindow", bundle: JIRA.getBundle())
+            let newVC = JIRARaiseTableViewController()
             var currentController: UIViewController! = rootController
             while( currentController.presentedViewController != nil ) {
-                
                 currentController = currentController.presentedViewController
             }
-            let image = UIApplication.shared.keyWindow?.capture()
-            //newVC.image = image
+            
+            newVC.image = UIApplication.shared.keyWindow?.capture()
             
             let nav = UINavigationController(rootViewController: newVC);
             nav.navigationBar.barStyle = .blackOpaque
             nav.navigationBar.tintColor = UIColor.white
-            nav.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
-            nav.navigationBar.isTranslucent = false
-            nav.navigationBar.isOpaque = true
-            currentController.present(nav, animated: true) {
-                print("Shown")
-            }
-        }
-    }
-    
-    public static func raise(withImage image:UIImage){
-        if let rootController = UIApplication.shared.keyWindow?.rootViewController {
-            let newVC: JIRAViewController = JIRAViewController(nibName: "JIRAWindow", bundle: JIRA.getBundle())
-            var currentController: UIViewController! = rootController
-            while( currentController.presentedViewController != nil ) {
-                
-                currentController = currentController.presentedViewController
-            }
-            newVC.image = image
-            
-            let nav = UINavigationController(rootViewController: newVC);
-            nav.navigationBar.barStyle = .blackOpaque
-            nav.navigationBar.tintColor = UIColor.white
+            nav.navigationBar.barTintColor = UIColor(red:32/255.0, green: 80.0/255.0, blue: 129.0/255.0,alpha:1.0)
             nav.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
             nav.navigationBar.isTranslucent = false
             nav.navigationBar.isOpaque = true
@@ -116,8 +102,9 @@ public class JIRA {
     
     func session(_ username:String, _ password:String)->URLSession{
         let config = URLSessionConfiguration.default
-        let authString = generateBearerToken(username: username, password: password)
-        config.httpAdditionalHeaders = ["Authorization" : authString]
+        if let authString = generateBearerToken(username: username, password: password) {
+            config.httpAdditionalHeaders = ["Authorization" : authString]
+        }
         return URLSession(configuration: config)
     }
     
@@ -161,30 +148,29 @@ public class JIRA {
         return "\(UIDevice.current.model) \(systemVersion) version: \(versionStr) - build: \(buildStr)"
     }
     
-    private func getParameters(issueType:String, issueSummary:String, issueDescription:String) -> [String:Any]{
-        var fields:[String:Any] = [
-            "project": [
-                "key" : project
-            ],
-            "summary": issueSummary,
-            "environment":JIRA.environmentString(),
-            "description": issueDescription,
-            "issuetype": ["name" : issueType]
-        ]
-        /*let customFields = CoreConfiguration.instance.getParam(param: "DATA.JIRA.fields")
-        customFields?.forEach({ (key,value) in
-            if let keyStr = key as? String {
-                fields[keyStr] = value
+    private func createDataTransferObject(_ issueData:[AnyHashable:Any]) -> [String:Any]{
+        var data = [String:Any]()
+        issueData.forEach { (key,value) in
+            if let key = key as? String {
+                if value is String {
+                    data[key] = value
+                }else if let jiraEntity = value as? JIRAEntity {
+                    data[key] = jiraEntity.export()
+                }else if let jiraEntityAry = value as? [JIRAEntity] {
+                    let entities = jiraEntityAry.map({ (entity) -> Any? in
+                        return entity.export()
+                    })
+                    data[key] = entities
+                }
             }
-        })*/
-        return ["fields":fields]
+        }
+        
+        return ["fields":data]
     }
     
-    internal func createIssue(issueType:String, issueSummary:String, issueDescription:String, image:UIImage?, completion: @escaping (_ completed:Bool) -> Void){
-        
-        
+    internal func create(issueData:[AnyHashable:Any], completion: @escaping (_ error:String?,_ key:String?) -> Void){
         let url = URL(string: "\(host!)/\(JIRA.url_issue)")!
-        let data = getParameters(issueType: "Bug", issueSummary: issueSummary, issueDescription: issueDescription)
+        let data = createDataTransferObject(issueData)
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -204,18 +190,29 @@ public class JIRA {
                     }
                     do {
                         let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
-                        let key = json?.object(forKey: "key") as? String
-                        self.postImage(id: key!, issueType: issueType, issueSummary: issueSummary, issueDescription: issueDescription, image: image, completion: completion)
+                        if let key = json?.object(forKey: "key") as? String {
+                            completion(nil, key)
+                        }else if let errors = json?.object(forKey: "errors") as? [String:Any] {
+                            var str = [String]()
+                            errors.forEach({ (key, value) in
+                                if let val = value as? String {
+                                    str.append(val)
+                                }
+                            })
+                            let errorMessage = str.joined(separator: "\n")
+                            completion(errorMessage, nil)
+                        }
+                        //self.postImage(id: key!, issueType: issueType, issueSummary: issueSummary, issueDescription: issueDescription, image: image, completion: completion)
                     } catch {
                         print("error serializing JSON: \(error)")
-                        completion(false)
+                        completion("error serializing JSON: \(error)", nil)
                     }
                 }
             }
             task.resume()
         } catch {
             print(error)
-            completion(false)
+            completion("error serializing JSON: \(error)", nil)
         }
     }
     
@@ -320,9 +317,6 @@ public class JIRA {
         let task = session().dataTask(with:request) { data, response, error in
             
             if let _ = response as? HTTPURLResponse {
-                if let jsonString = String(data: data!, encoding: .utf8) {
-                    print(jsonString)
-                }
                 do {
                     let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? [AnyHashable:Any]
                     var projects = [JIRAProject]()
@@ -342,6 +336,67 @@ public class JIRA {
                     }else{
                         completion(false,nil)
                     }
+                    
+                } catch {
+                    print("error serializing JSON: \(error)")
+                    completion(false,nil)
+                }
+            }
+        }
+        task.resume()
+    }
+    
+    internal func getChildEntities(dClass: JIRAEntity.Type,urlstr:String, _ completion: @escaping (_ error:Bool, _ values:[JIRAEntity]?) -> Void){
+        guard var urlComponents = URLComponents(string: urlstr) else { return }
+        var parameters = urlComponents.queryItems?.filter({ (queryItem) -> Bool in
+            return queryItem.value != "null"
+        })
+        let params = parameters?.map({ (queryItem) -> URLQueryItem in
+            if queryItem.name == "currentProjectId" {
+                return URLQueryItem(name: "currentProjectId", value: project)
+            }
+            return queryItem
+        })
+        if let params2 = params{
+            parameters = params2
+        }
+        parameters?.append(URLQueryItem(name: "project", value: project))
+        urlComponents.queryItems = parameters
+        let url = urlComponents.url!
+        var request = URLRequest(url: url)
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "GET"
+        let task = session().dataTask(with:request) { data, response, error in
+            
+            if let _ = response as? HTTPURLResponse {
+                if let jsonString = String(data: data!, encoding: .utf8) {
+                    print(jsonString)
+                }
+                do {
+                    let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)
+                    var values = [JIRAEntity]()
+                    if let jsonAry = json as? [[AnyHashable:Any]] {
+                        values = jsonAry.flatMap({ (element) -> JIRAEntity? in
+                            let val = dClass.init()
+                            if let valDisplayClass = val as? DisplayClass {
+                                valDisplayClass.applyData(data: element)
+                            }
+                            return val
+                        })
+                    }else if let jsonData = json as? [AnyHashable:Any] {
+                        if let jsonAry = jsonData["suggestions"] as? [[AnyHashable:Any]] {
+                            values = jsonAry.flatMap({ (element) -> JIRAEntity? in
+                                let val = dClass.init()
+                                if let valDisplayClass = val as? DisplayClass {
+                                    valDisplayClass.applyData(data: element)
+                                }
+                                return val
+                            })
+                        }
+                    }
+                    
+                    completion(true,values)
                     
                 } catch {
                     print("error serializing JSON: \(error)")

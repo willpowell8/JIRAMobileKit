@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'JIRAMobileKit'
-  s.version          = '3.0.1'
+  s.version          = '0.0.1'
   s.summary          = 'JIRA bug reporting for iOS written in swift'
 
 # This description is used to generate tags and improve search results.
@@ -18,7 +18,7 @@ Pod::Spec.new do |s|
 #   * Finally, don't worry about the indent, CocoaPods strips it!
 
   s.description      = <<-DESC
-Create and raise bugs in JIRA direct from device
+Create and raise bugs in JIRA direct from device with in built auto completion of environment and screenshot.
                        DESC
 
   s.homepage         = 'https://github.com/willpowell8/JIRAMobileKit'

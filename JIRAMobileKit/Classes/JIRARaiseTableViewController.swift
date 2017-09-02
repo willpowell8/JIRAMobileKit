@@ -2,23 +2,53 @@
 //  JIRARaiseTableViewController.swift
 //  Pods
 //
-//  Created by Will Powell on 13/08/2017.
+//  Created by Will Powell on 30/08/2017.
 //
 //
 
 import UIKit
 import MBProgressHUD
-
 class JIRARaiseTableViewController: UITableViewController {
 
     var closeAction:Bool = false
     var project:JIRAProject?
-    var issueType:JIRAIssueType?
+    var issueType:JIRAIssueType? {
+        didSet{
+            generateInitialData()
+            createCells()
+        }
+    }
+    
+    var hasLoaded = false
+    var cells = [JIRACell]()
+    var selectedCell:JIRACell?
+    
+    var image:UIImage?
+    var data = [String:Any]() // working ticket data
+    
+    func generateInitialData(){
+        var newData = [String:Any]()
+        issueType?.fields?.forEach({ (field) in
+            if let type = field.schema?.type {
+                switch(type){
+                default:
+                    if let system = field.schema?.system, system == .environment {
+                        newData["environment"] = JIRA.environmentString()
+                    }else{
+                        if let allowedValues = field.allowedValues, allowedValues.count == 1, let identifier =  field.identifier {
+                            newData[identifier] = allowedValues[0]
+                        }
+                    }
+                }
+            }
+        })
+        data = newData
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.navigationItem.title = "Feedback/Bug"
+        self.navigationItem.title = "JIRA"
         
         let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(close))
         self.navigationItem.leftBarButtonItems = [cancelButton]
@@ -37,19 +67,60 @@ class JIRARaiseTableViewController: UITableViewController {
                 loginVC.delegate = self
                 self.present(loginVC, animated: true, completion: nil)
             }else{
-                let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
-                hud.mode = .indeterminate
-                hud.label.text = "Loading ..."
-                JIRA.shared.createMeta({ (error, project) in
-                    self.project = project
-                    self.issueType = project?.issueTypes?[0]
-                    DispatchQueue.main.async {
-                        hud.hide(animated: true)
-                        self.tableView.reloadData()
-                    }
-                })
+                self.load()
             }
         }
+    }
+    
+    func load(){
+        guard hasLoaded == false else {
+            return
+        }
+        hasLoaded = true
+        let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+        hud.mode = .indeterminate
+        hud.label.text = "Loading ..."
+        JIRA.shared.createMeta({ (error, project) in
+            self.project = project
+            if let issueTypes = project?.issueTypes {
+                let issueType = issueTypes.first(where: { (issue) -> Bool in
+                    return issue.name == JIRA.shared.defaultIssueType
+                })
+                self.issueType = issueType
+            }else{
+                self.issueType = project?.issueTypes?[0]
+            }
+            
+            
+            DispatchQueue.main.async {
+                hud.hide(animated: true)
+                self.tableView.reloadData()
+            }
+        })
+    }
+    
+    func createCells(){
+        issueType?.fields?.forEach({ (field) in
+            if let type = field.schema?.type {
+                var cell:JIRACell?
+                switch(type){
+                case .string:
+                    if let allowedValues = field.allowedValues, allowedValues.count > 0 {
+                        cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
+                    }else{
+                        cell = JIRATextFieldCell()
+                    }
+                default:
+                    cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
+                }
+                if let cellV = cell {
+                    cellV.delegate = self
+                    cellV.field = field
+                    cellV.start(field: field, data: self.data)
+                    self.cells.append(cellV)
+                }
+            }
+        })
     }
     
     func close(){
@@ -57,7 +128,28 @@ class JIRARaiseTableViewController: UITableViewController {
     }
     
     func save(){
-        
+        // todo validate before save
+        let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+        hud.mode = MBProgressHUDMode.indeterminate
+        hud.label.text = "Creating..."
+        JIRA.shared.create(issueData: self.data, completion: { (error, key) in
+            DispatchQueue.main.async {
+                hud.hide(animated: true)
+                if error != nil {
+                    let alert = UIAlertController(title: "Error", message: error, preferredStyle: UIAlertControllerStyle.alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.default, handler: nil))
+                    self.present(alert, animated: true, completion: nil)
+                }else{
+                    let alert = UIAlertController(title: "Created", message: key, preferredStyle: UIAlertControllerStyle.alert)
+                    let action = UIAlertAction(title: "OK", style: .default, handler: { (action) in
+                        self.dismiss(animated: true, completion: nil)
+                    })
+                    alert.addAction(action)
+                    self.present(alert, animated: true, completion: nil)
+                    
+                }
+            }
+        })
     }
 
     override func didReceiveMemoryWarning() {
@@ -69,70 +161,39 @@ class JIRARaiseTableViewController: UITableViewController {
 
    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        if let fields = issueType?.fields {
-            return fields.count
-        }
-        return 0
+        return cells.count
     }
 
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell()//tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-        if let fields = issueType?.fields {
-            let field = fields[indexPath.row]
-            cell.textLabel?.text = field.name
-            
-        }
-        // Configure the cell...
-
+        let cell = cells[indexPath.row]
         return cell
     }
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
+    
+    
+    
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let cell = self.cells[indexPath.row]
+        self.selectedCell = cell
+        let field = cell.field
+        if let type = field?.schema?.type {
+            if type == .string {
+                if let allowedValues = field?.allowedValues, allowedValues.count > 0 {
+                    let table = JIRASubTableViewController()
+                    table.field = field
+                    table.delegate = self
+                    table.applyData(data: data)
+                    self.navigationController?.pushViewController(table, animated: true)
+                }
+            }else{
+                let table = JIRASubTableViewController()
+                table.field = field
+                table.delegate = self
+                table.applyData(data: data)
+                self.navigationController?.pushViewController(table, animated: true)
+            }
+        }
     }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
 
 extension JIRARaiseTableViewController:JIRALoginViewControllerDelegate{
@@ -142,5 +203,15 @@ extension JIRARaiseTableViewController:JIRALoginViewControllerDelegate{
     
     func loginOK() {
         
+    }
+}
+
+extension JIRARaiseTableViewController:JIRASubTableViewControllerDelegate {
+    func jiraSelected(field:JIRAField?, item: Any?) {
+        guard let field = field, let identifier = field.identifier else {
+            return
+        }
+        self.data[identifier] = item
+        self.selectedCell?.applyData(data: self.data)
     }
 }
