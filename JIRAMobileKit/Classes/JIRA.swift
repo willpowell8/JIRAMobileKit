@@ -193,7 +193,11 @@ public class JIRA {
                     do {
                         let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
                         if let key = json?.object(forKey: "key") as? String {
-                            completion(nil, key)
+                            if let image = issueData["attachment"] as? UIImage {
+                                self.postImage(key: key, image: image, completion: completion)
+                            }else{
+                                completion(nil, key)
+                            }
                         }else if let errors = json?.object(forKey: "errors") as? [String:Any] {
                             var str = [String]()
                             errors.forEach({ (key, value) in
@@ -204,7 +208,6 @@ public class JIRA {
                             let errorMessage = str.joined(separator: "\n")
                             completion(errorMessage, nil)
                         }
-                        //self.postImage(id: key!, issueType: issueType, issueSummary: issueSummary, issueDescription: issueDescription, image: image, completion: completion)
                     } catch {
                         print("error serializing JSON: \(error)")
                         completion("error serializing JSON: \(error)", nil)
@@ -218,39 +221,9 @@ public class JIRA {
         }
     }
     
-    public func getIssueData(id:String, issueType:String, issueSummary:String, issueDescription:String, image:UIImage?, completion: @escaping (_ completed:Bool) -> Void){
-        
-        let url = URL(string: "\(host!)/rest/api/2/issue/\(id)/")!
-        var request = URLRequest(url: url)
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        request.addValue("nocheck", forHTTPHeaderField: "X-Atlassian-Token")
-        
-        request.httpMethod = "GET"
-        let task = session().dataTask(with:request) { data, response, error in
-            
-            if let _ = response as? HTTPURLResponse {
-                print("COMPLETED UPLOAD")
-                print("WELCOME")
-                if let jsonString = String(data: data!, encoding: .utf8) {
-                    print(jsonString)
-                }
-                print("DONE")
-                do {
-                    let _ = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
-                    self.postImage(id: id, issueType: issueType, issueSummary: issueSummary, issueDescription: issueDescription, image: image, completion: completion)
-                } catch {
-                    print("error serializing JSON: \(error)")
-                }
-            }
-        }
-        
-        task.resume()
-    }
-    
-    internal func postImage(id:String, issueType:String, issueSummary:String, issueDescription:String, image:UIImage?, completion: @escaping (_ completed:Bool) -> Void)
+    internal func postImage(key:String, image:UIImage?, completion: @escaping (_ error:String?,_ key:String?) -> Void)
     {
-        
-        let url = URL(string: "\(host!)/rest/api/2/issue/\(id)/attachments")!
+        let url = URL(string: "\(host!)/rest/api/2/issue/\(key)/attachments")!
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("nocheck", forHTTPHeaderField: "X-Atlassian-Token")
@@ -274,7 +247,7 @@ public class JIRA {
         
         let body = NSMutableData()
         
-        let fname = "test.png"
+        let fname = "screenshot.png"
         let mimetype = "image/png"
         
         //define the data post parameter
@@ -299,11 +272,13 @@ public class JIRA {
                 }
                 do {
                     let _ = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
-                    completion(true)
+                    completion(nil, key)
                 } catch {
                     print("error serializing JSON: \(error)")
-                    completion(false)
+                    completion("error serializing JSON: \(error)", nil)
                 }
+            }else{
+                completion("error connecting to JIRA no attachment uploaded", nil)
             }
         }
         
