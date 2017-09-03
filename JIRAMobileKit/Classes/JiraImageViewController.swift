@@ -37,6 +37,7 @@ class JiraImageViewController: UIViewController {
             canvas?.heightAnchor.constraint(equalTo: self.view.heightAnchor).isActive = true
             canvas?.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
         }
+        canvas?.contentMode = .scaleAspectFit
         canvas?.image = image
         let applyButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(apply))
         self.navigationItem.rightBarButtonItems = [applyButton]
