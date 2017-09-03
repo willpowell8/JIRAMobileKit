@@ -5,6 +5,8 @@
 [![License](https://img.shields.io/cocoapods/l/JIRAMobileKit.svg?style=flat)](http://cocoapods.org/pods/JIRAMobileKit)
 [![Platform](https://img.shields.io/cocoapods/p/JIRAMobileKit.svg?style=flat)](http://cocoapods.org/pods/JIRAMobileKit)
 
+JIRA Mobile KIT is a plugin written from the group up in swift to enable fast 
+
 ## Example
 
 To run the example project, clone the repo, and run `pod install` from the Example directory first.
@@ -16,9 +18,19 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 JIRAMobileKit is available through [CocoaPods](http://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
-```ruby
+```swift
 pod "JIRAMobileKit"
 ```
+
+To call JIRA Mobile enter the following action
+
+```swift
+JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
+```
+The parameters you should use:
+- [[JIRA_URL]] - this is the url of where to your jira instance is located. Eg for a cloud JIRA install it is https://somename.atlassian.net
+- [[PROJECT_KEY]] - this is the short key related to your project. Note your tickets for a project get created like [[PROJECT_KEY]]-TicketNumber
+- [[DEFAULT_ISSUE_TYPE]] - this is the name of your ticket type. By default it is set as Bug.
 
 ## Author
 
