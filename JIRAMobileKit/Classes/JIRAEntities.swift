@@ -37,6 +37,7 @@ enum JIRASchemaSystem:String {
     case issuelinks = "issuelinks"
     case priority = "priority"
     case environment = "environment"
+    case attachment = "attachment"
 }
 
 class JIRAEntity :NSObject {

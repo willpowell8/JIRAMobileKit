@@ -34,6 +34,8 @@ class JIRARaiseTableViewController: UITableViewController {
                 default:
                     if let system = field.schema?.system, system == .environment {
                         newData["environment"] = JIRA.environmentString()
+                    }else if let system = field.schema?.system, system == .attachment {
+                        newData["attachment"] = image
                     }else{
                         if let allowedValues = field.allowedValues, allowedValues.count == 1, let identifier =  field.identifier {
                             newData[identifier] = allowedValues[0]
@@ -84,7 +86,7 @@ class JIRARaiseTableViewController: UITableViewController {
             self.project = project
             if let issueTypes = project?.issueTypes {
                 let issueType = issueTypes.first(where: { (issue) -> Bool in
-                    return issue.name == JIRA.shared.defaultIssueType
+                    return issue.name?.lowercased() == JIRA.shared.defaultIssueType?.lowercased()
                 })
                 self.issueType = issueType
             }else{
@@ -109,6 +111,12 @@ class JIRARaiseTableViewController: UITableViewController {
                         cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
                     }else{
                         cell = JIRATextFieldCell()
+                    }
+                case .array:
+                    if let system = field.schema?.system, system == .attachment {
+                        cell = JIRAImageCell(style: .value1, reuseIdentifier: "cell")
+                    }else{
+                        cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
                     }
                 default:
                     cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
@@ -184,15 +192,32 @@ class JIRARaiseTableViewController: UITableViewController {
                     table.delegate = self
                     table.applyData(data: data)
                     self.navigationController?.pushViewController(table, animated: true)
+                    return;
                 }
-            }else{
-                let table = JIRASubTableViewController()
-                table.field = field
-                table.delegate = self
-                table.applyData(data: data)
-                self.navigationController?.pushViewController(table, animated: true)
+                return;
             }
+            if type == .array, let system = field?.schema?.system, system == .attachment {
+                
+                if let identifier = field?.identifier, let image = data[identifier] as? UIImage {
+                    let jiraImageVC = JiraImageViewController()
+                    jiraImageVC.image = image
+                    jiraImageVC.delegate = self
+                    self.navigationController?.pushViewController(jiraImageVC, animated: true)
+                    return;
+                }
+                
+            }
+            let table = JIRASubTableViewController()
+            table.field = field
+            table.delegate = self
+            table.applyData(data: data)
+            self.navigationController?.pushViewController(table, animated: true)
         }
+    }
+    
+    override func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let cell = self.cells[indexPath.row]
+        return cell.height()
     }
 }
 
@@ -213,5 +238,17 @@ extension JIRARaiseTableViewController:JIRASubTableViewControllerDelegate {
         }
         self.data[identifier] = item
         self.selectedCell?.applyData(data: self.data)
+    }
+}
+
+extension JIRARaiseTableViewController:JiraImageViewControllerDelegate {
+    func updateImage(image: UIImage) {
+        if let selectedCell = self.selectedCell {
+            guard let field = selectedCell.field, let identifier = field.identifier else {
+                return
+            }
+            self.data[identifier] = image
+            self.selectedCell?.applyData(data: self.data)
+        }
     }
 }

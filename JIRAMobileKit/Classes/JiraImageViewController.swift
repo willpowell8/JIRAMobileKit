@@ -30,9 +30,13 @@ class JiraImageViewController: UIViewController {
         canvas?.drawColor = .red
         canvas?.isUserInteractionEnabled = true
         self.view.addSubview(canvas!)
-        /*canvas!.snp.makeConstraints { (make) in
-            make.top.left.right.bottom.equalToSuperview()
-        }*/
+        if #available(iOS 9.0, *) {
+            canvas?.translatesAutoresizingMaskIntoConstraints = false
+            canvas?.leftAnchor.constraint(equalTo: self.view.leftAnchor).isActive = true
+            canvas?.rightAnchor.constraint(equalTo: self.view.rightAnchor).isActive = true
+            canvas?.heightAnchor.constraint(equalTo: self.view.heightAnchor).isActive = true
+            canvas?.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+        }
         canvas?.image = image
         let applyButton = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(apply))
         self.navigationItem.rightBarButtonItems = [applyButton]

@@ -31,7 +31,7 @@ class JIRACell:UITableViewCell{
         
     }
     
-    func height()->Int{
+    func height()->CGFloat{
         return 44
     }
 }
@@ -51,12 +51,8 @@ class JIRATextFieldCell:JIRACell{
             textField?.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
             textField?.heightAnchor.constraint(equalToConstant: 20).isActive = true
         }
+        textField?.textColor = JIRA.MainColor
         textField?.addTarget(self, action: #selector(didChangeTextfield), for: UIControlEvents.editingChanged)
-        /*if let details = self.details {
-            if let value = details["value"] {
-                textField?.text = String(describing:value)
-            }
-        }*/
     }
     
     override func applyData(data:[String:Any]){
@@ -82,6 +78,7 @@ class JIRATextCell:JIRACell{
 class JIRAOptionCell:JIRACell{
     override func setup(){
         self.accessoryType = .disclosureIndicator
+        self.detailTextLabel?.textColor = JIRA.MainColor
     }
     
     override func applyData(data:[String:Any]){
@@ -95,5 +92,37 @@ class JIRAOptionCell:JIRACell{
                 self.detailTextLabel?.text = strs.joined(separator: ", ")
             }
         }
+    }
+}
+
+
+class JIRAImageCell:JIRACell{
+    var imageViewArea:UIImageView?
+    override func setup(){
+        self.accessoryType = .disclosureIndicator
+        imageViewArea = UIImageView()
+        imageViewArea?.backgroundColor = .clear
+        self.addSubview(imageViewArea!)
+        imageViewArea?.translatesAutoresizingMaskIntoConstraints = false
+        if #available(iOS 9.0, *) {
+            imageViewArea?.leftAnchor.constraint(equalTo: self.textLabel!.rightAnchor, constant: 20).isActive = true
+            imageViewArea?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -30).isActive = true
+            imageViewArea?.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10).isActive = true
+            imageViewArea?.topAnchor.constraint(equalTo: self.topAnchor, constant: 10).isActive = true
+        }
+        imageViewArea?.contentMode = .scaleAspectFit
+        self.backgroundColor = UIColor.init(white: 0.95, alpha: 1.0)
+    }
+    
+    override func applyData(data:[String:Any]){
+        if let field = field, let identifier = field.identifier {
+            if let element = data[identifier] as? UIImage {
+                self.imageViewArea?.image = element
+            }
+        }
+    }
+    
+    override func height()->CGFloat{
+        return 200
     }
 }

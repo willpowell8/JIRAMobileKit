@@ -19,6 +19,8 @@ public class JIRA {
     private static let url_issue_createmeta = "/rest/api/2/issue/createmeta?expand=projects.issuetypes.fields"
     private static let url_myself = "/rest/api/2/myself"
     
+    internal static let MainColor = UIColor(red:32/255.0, green: 80.0/255.0, blue: 129.0/255.0,alpha:1.0)
+    
     private var _host:String?
     public var host:String? {
         get{
@@ -67,7 +69,7 @@ public class JIRA {
             let nav = UINavigationController(rootViewController: newVC);
             nav.navigationBar.barStyle = .blackOpaque
             nav.navigationBar.tintColor = UIColor.white
-            nav.navigationBar.barTintColor = UIColor(red:32/255.0, green: 80.0/255.0, blue: 129.0/255.0,alpha:1.0)
+            nav.navigationBar.barTintColor = JIRA.MainColor
             nav.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
             nav.navigationBar.isTranslucent = false
             nav.navigationBar.isOpaque = true
