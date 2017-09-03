@@ -10,11 +10,11 @@ import UIKit
 import JIRAMobileKit
 
 class ViewController: UIViewController {
+    var tapGestureRecognizer : UITapGestureRecognizer!
 
     override func viewDidLoad() {
         super.viewDidLoad()
         JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
-        
     }
 
     override func didReceiveMemoryWarning() {
@@ -25,6 +25,23 @@ class ViewController: UIViewController {
     @IBAction func raiseBug(_ sender:Any?){
         JIRA.shared.raise()
     }
-
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(true)
+        tapGestureRecognizer = UITapGestureRecognizer(target:self, action: #selector(self.navBarTapped(_:)))
+        self.navigationController?.navigationBar.addGestureRecognizer(tapGestureRecognizer)
+        
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        self.navigationController?.navigationBar.removeGestureRecognizer(tapGestureRecognizer)
+        
+    }
+    
+    func navBarTapped(_ theObject: AnyObject){
+        JIRA.shared.raise()
+    }
 }
 

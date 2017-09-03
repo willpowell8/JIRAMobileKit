@@ -24,7 +24,8 @@ class JiraImageViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = .white
+        self.view.backgroundColor = UIColor.gray
+        self.navigationItem.title = "Annotate Image"
         canvas = AnnoateImageView()
         canvas?.clearCanvas(animated:false)
         canvas?.drawColor = .red
@@ -32,10 +33,10 @@ class JiraImageViewController: UIViewController {
         self.view.addSubview(canvas!)
         if #available(iOS 9.0, *) {
             canvas?.translatesAutoresizingMaskIntoConstraints = false
-            canvas?.leftAnchor.constraint(equalTo: self.view.leftAnchor).isActive = true
-            canvas?.rightAnchor.constraint(equalTo: self.view.rightAnchor).isActive = true
-            canvas?.heightAnchor.constraint(equalTo: self.view.heightAnchor).isActive = true
-            canvas?.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+            canvas?.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant:10).isActive = true
+            canvas?.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant:-10).isActive = true
+            canvas?.heightAnchor.constraint(equalTo: self.view.heightAnchor, constant:-20).isActive = true
+            canvas?.topAnchor.constraint(equalTo: self.view.topAnchor, constant:10).isActive = true
         }
         canvas?.contentMode = .scaleAspectFit
         canvas?.image = image

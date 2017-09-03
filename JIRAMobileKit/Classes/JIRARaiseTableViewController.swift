@@ -101,6 +101,14 @@ class JIRARaiseTableViewController: UITableViewController {
         })
     }
     
+    func deselectCells(){
+        self.cells.forEach { (cell) in
+            if cell != selectedCell {
+                cell.deselect()
+            }
+        }
+    }
+    
     func createCells(){
         issueType?.fields?.forEach({ (field) in
             if let type = field.schema?.type {
@@ -183,6 +191,7 @@ class JIRARaiseTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let cell = self.cells[indexPath.row]
         self.selectedCell = cell
+        self.deselectCells()
         let field = cell.field
         if let type = field?.schema?.type {
             if type == .string {

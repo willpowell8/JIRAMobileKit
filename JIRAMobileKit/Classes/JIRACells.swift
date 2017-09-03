@@ -27,6 +27,10 @@ class JIRACell:UITableViewCell{
         
     }
     
+    func deselect(){
+        
+    }
+    
     func applyData(data:[String:Any]){
         
     }
@@ -61,6 +65,11 @@ class JIRATextFieldCell:JIRACell{
                 self.textField?.text = element
             }
         }
+    }
+    
+    override func deselect() {
+        super.deselect()
+        self.textField?.resignFirstResponder()
     }
     
     func didChangeTextfield(){

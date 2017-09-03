@@ -110,7 +110,7 @@ public class JIRA {
         return URLSession(configuration: config)
     }
     
-    public func login(username:String, password:String, completion: @escaping (_ completed:Bool) -> Void) {
+    public func login(username:String, password:String, completion: @escaping (_ completed:Bool, _ error:String?) -> Void) {
         let url = URL(string: "\(host!)\(JIRA.url_myself)")!
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -127,11 +127,13 @@ public class JIRA {
                     UserDefaults.standard.set(username, forKey: "JIRA_USE")
                     UserDefaults.standard.set(password, forKey: "JIRA_PWD")
                     UserDefaults.standard.synchronize()
-                    completion(true)
+                    completion(true, nil)
                 } catch {
                     print("error serializing JSON: \(error)")
-                    completion(false)
+                    completion(false,"Could not authenticate you. You may need to login on the web to reset captcha before trying again.")
                 }
+            }else{
+                completion(false,"Could connect to JIRA. Check your configurations.")
             }
         }
         task.resume()

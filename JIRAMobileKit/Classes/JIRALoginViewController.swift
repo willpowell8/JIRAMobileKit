@@ -14,17 +14,26 @@ protocol JIRALoginViewControllerDelegate {
     func loginOK()
 }
 
-class JIRALoginViewController: UIViewController {
+class JIRALoginViewController: UIViewController,UITextFieldDelegate {
     
     @IBOutlet weak var usernameField:UITextField!
     @IBOutlet weak var passwordField:UITextField!
+    
+    @IBOutlet weak var hostLabel:UILabel!
+    @IBOutlet weak var projectLabel:UILabel!
     
     var delegate:JIRALoginViewControllerDelegate?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        hostLabel.text = JIRA.shared.host
+        projectLabel.text = JIRA.shared.project
         // Do any additional setup after loading the view.
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        usernameField.becomeFirstResponder()
     }
 
     override func didReceiveMemoryWarning() {
@@ -44,13 +53,13 @@ class JIRALoginViewController: UIViewController {
             let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
             hud.mode = .indeterminate
             hud.label.text = "Logging in ..."
-            JIRA.shared.login(username: username, password: password) { (valid) in
+            JIRA.shared.login(username: username, password: password) { (valid, error) in
                 DispatchQueue.main.async {
                     hud.hide(animated: true)
                     if valid == true {
                         self.dismiss(animated: true, completion: nil)
                     }else{
-                        self.loginFailure()
+                        self.loginFailure(error)
                     }
                 }
                 
@@ -58,11 +67,22 @@ class JIRALoginViewController: UIViewController {
         }
     }
     
-    func loginFailure(){
-        let alert = UIAlertController(title: "Login Failure", message: "Invalid Credentials. You may need to login to jira on the web to reset any Captcha on multiple failures", preferredStyle: .actionSheet)
+    func loginFailure(_ error:String?){
+        let errorStr = error ?? "Unknown error occured"
+        let alert = UIAlertController(title: "Login Failure", message: errorStr, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Try Again", style: .default) { action in
             // perhaps use action.title here
         })
+        self.present(alert, animated: true, completion: nil)
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        if textField == usernameField {
+            passwordField.becomeFirstResponder()
+        }else if textField == passwordField {
+            login()
+        }
+        return true
     }
 
 }
