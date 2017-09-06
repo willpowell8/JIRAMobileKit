@@ -60,6 +60,9 @@ class JIRASubTableViewController: UITableViewController {
                 case .fixVersions:
                     returnClass = JIRALabel.self
                     break
+                case .issuelinks:
+                    returnClass = JIRAIssueSection.self
+                    break
                 case .labels:
                     returnClass = JIRALabel.self
                 default:
@@ -71,7 +74,7 @@ class JIRASubTableViewController: UITableViewController {
                     self.elements = values
                 }
             })
-        }else if let allowedValues = field?.allowedValues {
+        }else if let allowedValues = field?.allowedValues  {
             elements = allowedValues
         }
         
@@ -107,30 +110,56 @@ class JIRASubTableViewController: UITableViewController {
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
+        if elements.count > 0 {
+            let element = elements[0]
+            if element is ChildrenClass {
+                return elements.count
+            }
+        }
         return 1
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
+        
+        if elements.count > 0 {
+            let element = elements[0]
+            if element is ChildrenClass {
+                if let currentElement = elements[section] as? ChildrenClass {
+                    if let children = currentElement.children {
+                        return children.count
+                    }
+                    return 0
+                }
+            }
+        }
         return elements.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell()
-        let element = elements[indexPath.row]
-        cell.textLabel?.text = element.label
+        var element:DisplayClass?
+        if elements.count > 0, elements[0] is ChildrenClass  {
+            if let currentElement = elements[indexPath.section] as? ChildrenClass {
+                if let children = currentElement.children {
+                    element = children[indexPath.row] as! DisplayClass
+                }
+            }
+        }else{
+            element = elements[indexPath.row]
+        }
+        cell.textLabel?.text = element?.label
         if let type = field?.schema?.type {
             if type == .array {
                 if selectedFields.index(where: { (displayClass) -> Bool in
-                    return displayClass.label == element.label
+                    return displayClass.label == element?.label
                 }) != nil {
                     cell.accessoryType = .checkmark
                 }else{
                     cell.accessoryType = .none
                 }
             }else{
-                if let selectedElementLabel = selectedField?.label, selectedElementLabel == element.label {
+                if let selectedElementLabel = selectedField?.label, selectedElementLabel == element?.label {
                     cell.accessoryType = .checkmark
                 }else{
                     cell.accessoryType = .none
@@ -142,7 +171,19 @@ class JIRASubTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let type = field?.schema?.type {
-            let element = elements[indexPath.row]
+            var elementTemp:DisplayClass?
+            if elements.count > 0, elements[0] is ChildrenClass {
+                if let currentElement = elements[indexPath.section] as? ChildrenClass {
+                    if let children = currentElement.children {
+                        elementTemp = children[indexPath.row] as! DisplayClass
+                    }
+                }
+            }else{
+                elementTemp = elements[indexPath.row]
+            }
+            guard let element = elementTemp else {
+                return
+            }
             if type == .array {
                 selectedFields.append(element)
                 tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark

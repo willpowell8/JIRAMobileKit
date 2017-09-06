@@ -14,6 +14,10 @@ protocol DisplayClass:NSObjectProtocol {
     func applyData(data:[AnyHashable:Any])
 }
 
+protocol ChildrenClass {
+    var children:[Any]?{get}
+}
+
 enum JIRASchemaType:String {
     case string = "string"
     case issuetype = "issuetype"
@@ -289,6 +293,76 @@ class JIRAProject {
                 issueTypesOutput.append(issueType)
             })
             self.issueTypes = issueTypesOutput
+        }
+    }
+}
+
+class JIRAIssueSection:JIRAEntity,DisplayClass,ChildrenClass {
+    var labelStr:String?
+    var sub:String?
+    var id:String?
+    var issues:[JIRAEntity]?
+    func applyData(data:[AnyHashable:Any]){
+        if let id = data["id"] as? String {
+            self.id = id
+        }
+        if let sub = data["sub"] as? String {
+            self.sub = sub
+        }
+        if let label = data["label"] as? String {
+            self.labelStr = label
+        }
+        var issues = [JIRAIssue]()
+        if let ary = data["issues"] as? [[AnyHashable:Any]] {
+            ary.forEach({ (item) in
+                let issue = JIRAIssue()
+                issue.applyData(data: item)
+                issues.append(issue)
+            })
+        }
+        self.issues = issues
+    }
+    
+    var children: [Any]?{
+        get{
+            return issues
+        }
+    }
+    
+    var label: String? {
+        get{
+            return labelStr
+        }
+    }
+}
+
+class JIRAIssue:JIRAEntity,DisplayClass {
+    var key:String?
+    var keyHtml:String?
+    var img:String?
+    var summary:String?
+    var summaryText:String?
+    func applyData(data:[AnyHashable:Any]){
+        if let key = data["key"] as? String {
+            self.key = key
+        }
+        if let keyHtml = data["keyHtml"] as? String {
+            self.keyHtml = keyHtml
+        }
+        if let img = data["img"] as? String {
+            self.img = img
+        }
+        if let summary = data["summary"] as? String {
+            self.summary = summary
+        }
+        if let summaryText = data["summaryText"] as? String {
+            self.summaryText = summaryText
+        }
+    }
+    
+    var label: String? {
+        get{
+            return summary
         }
     }
 }

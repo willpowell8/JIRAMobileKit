@@ -372,6 +372,14 @@ public class JIRA {
                                 }
                                 return val
                             })
+                        }else if let jsonAry = jsonData["sections"] as? [[AnyHashable:Any]] {
+                            values = jsonAry.flatMap({ (element) -> JIRAEntity? in
+                                let val = dClass.init()
+                                if let valDisplayClass = val as? DisplayClass {
+                                    valDisplayClass.applyData(data: element)
+                                }
+                                return val
+                            })
                         }
                     }
                     
