@@ -288,7 +288,7 @@ public class JIRA {
     }
     
     internal func createMeta(_ completion: @escaping (_ error:Bool, _ project:JIRAProject?) -> Void){
-        let url = URL(string: "\(host!)\(JIRA.url_issue_createmeta)")!
+        let url = URL(string: "\(host!)\(JIRA.url_issue_createmeta)&projectKeys=\(self.project!)")!
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")

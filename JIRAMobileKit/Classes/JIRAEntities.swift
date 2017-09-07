@@ -362,7 +362,14 @@ class JIRAIssue:JIRAEntity,DisplayClass {
     
     var label: String? {
         get{
-            return summary
+            var output = ""
+            if let key = self.key {
+                output = key
+            }
+            if let summary = self.summary {
+                output += " - " + summary
+            }
+            return output
         }
     }
 }

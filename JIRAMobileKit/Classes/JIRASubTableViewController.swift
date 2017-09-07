@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import MBProgressHUD
 
 protocol JIRASubTableViewControllerDelegate {
     func jiraSelected(field:JIRAField?, item:Any?)
@@ -69,7 +70,12 @@ class JIRASubTableViewController: UITableViewController {
                     returnClass = JIRAAllowedValue.self
                 }
             }
+            let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+            hud.mode = .indeterminate
             JIRA.shared.getChildEntities(dClass:returnClass,urlstr: autoCompleteUrl, { (error, values) in
+                DispatchQueue.main.async {
+                    hud.hide(animated: true)
+                }
                 if let values = values as? [DisplayClass] {
                     self.elements = values
                 }
@@ -94,7 +100,7 @@ class JIRASubTableViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        self.tableView.tableFooterView = UIView()
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
