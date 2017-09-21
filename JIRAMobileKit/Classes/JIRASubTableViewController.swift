@@ -16,9 +16,12 @@ protocol JIRASubTableViewControllerDelegate {
 class JIRASubTableViewController: UITableViewController {
     
     var delegate:JIRASubTableViewControllerDelegate?
-    
+    let searchController = UISearchController(searchResultsController: nil)
     var field:JIRAField? {
         didSet{
+            if let f = field {
+                self.navigationItem.title = f.name
+            }
             apply()
         }
     }
@@ -26,6 +29,11 @@ class JIRASubTableViewController: UITableViewController {
     var selectedField:DisplayClass?
     
     var elements = [DisplayClass]() {
+        didSet{
+            elementsFiltered = elements
+        }
+    }
+    var elementsFiltered = [DisplayClass]() {
         didSet{
             DispatchQueue.main.async {
                 self.tableView.reloadData()
@@ -101,11 +109,10 @@ class JIRASubTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.tableView.tableFooterView = UIView()
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
+        searchController.searchResultsUpdater = self
+        searchController.dimsBackgroundDuringPresentation = false
+        definesPresentationContext = true
+        tableView.tableHeaderView = searchController.searchBar
     }
 
     override func didReceiveMemoryWarning() {
@@ -116,10 +123,10 @@ class JIRASubTableViewController: UITableViewController {
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
-        if elements.count > 0 {
-            let element = elements[0]
+        if elementsFiltered.count > 0 {
+            let element = elementsFiltered[0]
             if element is ChildrenClass {
-                return elements.count
+                return elementsFiltered.count
             }
         }
         return 1
@@ -128,10 +135,10 @@ class JIRASubTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
         
-        if elements.count > 0 {
-            let element = elements[0]
+        if elementsFiltered.count > 0 {
+            let element = elementsFiltered[0]
             if element is ChildrenClass {
-                if let currentElement = elements[section] as? ChildrenClass {
+                if let currentElement = elementsFiltered[section] as? ChildrenClass {
                     if let children = currentElement.children {
                         return children.count
                     }
@@ -139,20 +146,20 @@ class JIRASubTableViewController: UITableViewController {
                 }
             }
         }
-        return elements.count
+        return elementsFiltered.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell()
         var element:DisplayClass?
-        if elements.count > 0, elements[0] is ChildrenClass  {
-            if let currentElement = elements[indexPath.section] as? ChildrenClass {
+        if elements.count > 0, elementsFiltered[0] is ChildrenClass  {
+            if let currentElement = elementsFiltered[indexPath.section] as? ChildrenClass {
                 if let children = currentElement.children {
                     element = children[indexPath.row] as! DisplayClass
                 }
             }
         }else{
-            element = elements[indexPath.row]
+            element = elementsFiltered[indexPath.row]
         }
         cell.textLabel?.text = element?.label
         if let type = field?.schema?.type {
@@ -178,14 +185,14 @@ class JIRASubTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let type = field?.schema?.type {
             var elementTemp:DisplayClass?
-            if elements.count > 0, elements[0] is ChildrenClass {
-                if let currentElement = elements[indexPath.section] as? ChildrenClass {
+            if elements.count > 0, elementsFiltered[0] is ChildrenClass {
+                if let currentElement = elementsFiltered[indexPath.section] as? ChildrenClass {
                     if let children = currentElement.children {
                         elementTemp = children[indexPath.row] as! DisplayClass
                     }
                 }
             }else{
-                elementTemp = elements[indexPath.row]
+                elementTemp = elementsFiltered[indexPath.row]
             }
             guard let element = elementTemp else {
                 return
@@ -201,7 +208,7 @@ class JIRASubTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
-        let element = elements[indexPath.row]
+        let element = elementsFiltered[indexPath.row]
         if let index = selectedFields.index(where: { (displayClass) -> Bool in
             return displayClass.label == element.label
         }) {
@@ -209,49 +216,21 @@ class JIRASubTableViewController: UITableViewController {
             tableView.cellForRow(at: indexPath)?.accessoryType = .none
         }
     }
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
+
+}
+
+extension JIRASubTableViewController: UISearchResultsUpdating {
+    // MARK: - UISearchResultsUpdating Delegate
+    func updateSearchResults(for searchController: UISearchController) {
+        if let text = searchController.searchBar.text, text.characters.count > 0 {
+            elementsFiltered = elements.filter({ (display) -> Bool in
+                if let label = display.label {
+                    return label.contains(text)
+                }
+                return false
+            })
+        }else{
+            elementsFiltered = elements
+        }
     }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }

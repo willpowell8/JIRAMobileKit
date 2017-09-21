@@ -14,8 +14,9 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
+        JIRA.shared.setup(host: "https://holtrenfrew.atlassian.net", project: "OMNMOB")
+        //JIRA.shared.setup(host: "https://tracking.keytree.net", project: "KC", defaultIssueType: "Keytree raised defect")
+        //JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
     }
 
     override func didReceiveMemoryWarning() {
