@@ -157,6 +157,17 @@ public class JIRA {
             buildStr = version
         }
         let systemVersion = UIDevice.current.systemVersion
+        /*var output = ""
+        Bundle.allFrameworks.forEach { (bundle) in
+            if let bundleIdentifier = bundle.bundleIdentifier, bundleIdentifier.contains("com.apple") == false{
+                var record = bundleIdentifier
+                if let version = bundle.infoDictionary!["CFBundleShortVersionString"] as? String {
+                    record += " - \(version)"
+                }
+                output += record+"\n"
+            }
+        }*/
+        
         return "\(UIDevice.current.model) \(systemVersion) version: \(versionStr) - build: \(buildStr)"
     }
     
