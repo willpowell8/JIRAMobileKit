@@ -311,14 +311,21 @@ public class JIRA {
                         return project.key == self.project
                     })
                     if currentProject?.count == 1 {
-                        completion(true,currentProject?[0])
+                        DispatchQueue.main.async {
+                             completion(true,currentProject?[0])
+                        }
+                       
                     }else{
-                        completion(false,nil)
+                        DispatchQueue.main.async {
+                            completion(false,nil)
+                        }
                     }
                     
                 } catch {
                     print("error serializing JSON: \(error)")
-                    completion(false,nil)
+                    DispatchQueue.main.async {
+                        completion(false,nil)
+                    }
                 }
             }
         }

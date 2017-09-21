@@ -14,6 +14,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
     }
 
@@ -40,8 +41,14 @@ class ViewController: UIViewController {
         
     }
     
-    func navBarTapped(_ theObject: AnyObject){
-        JIRA.shared.raise()
+    func navBarTapped(_ tapRecognizer: UITapGestureRecognizer){
+        if tapRecognizer.state == .recognized {
+            let point = tapRecognizer.location(in: self.navigationController?.navigationBar)
+            if point.x > 100 && point.x < (self.navigationController?.navigationBar.frame.width)!-100 {
+                JIRA.shared.raise()
+            }
+        }
+        
     }
 }
 

@@ -92,12 +92,8 @@ class JIRARaiseTableViewController: UITableViewController {
             }else{
                 self.issueType = project?.issueTypes?[0]
             }
-            
-            
-            DispatchQueue.main.async {
-                hud.hide(animated: true)
-                self.tableView.reloadData()
-            }
+            hud.hide(animated: true)
+            self.tableView.reloadData()
         })
     }
     
