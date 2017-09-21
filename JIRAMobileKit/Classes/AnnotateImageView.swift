@@ -11,7 +11,7 @@ import UIKit
 
 let π = CGFloat(Double.pi)
 
-public class AnnoateImageView: UIImageView {
+class AnnoateImageView: UIImageView {
     
     fileprivate let defaultLineWidth:CGFloat = 3
     

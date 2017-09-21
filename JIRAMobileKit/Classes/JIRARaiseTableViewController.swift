@@ -114,7 +114,7 @@ class JIRARaiseTableViewController: UITableViewController {
                     if let allowedValues = field.allowedValues, allowedValues.count > 0 {
                         cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
                     }else{
-                        cell = JIRATextFieldCell()
+                        cell = JIRATextFieldCell(style: .value1, reuseIdentifier: "cell")
                     }
                 case .array:
                     if let system = field.schema?.system, system == .attachment {

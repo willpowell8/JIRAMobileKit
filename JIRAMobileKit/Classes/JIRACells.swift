@@ -63,7 +63,7 @@ class JIRATextFieldCell:JIRACell{
         textField?.translatesAutoresizingMaskIntoConstraints = false
         
         if #available(iOS 9.0, *) {
-            textField?.leftAnchor.constraint(equalTo: self.textLabel!.leftAnchor, constant: 100).isActive = true
+            textField?.leftAnchor.constraint(equalTo: self.textLabel!.rightAnchor, constant: 10).isActive = true
             textField?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -30).isActive = true
             textField?.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
             textField?.heightAnchor.constraint(equalToConstant: 20).isActive = true

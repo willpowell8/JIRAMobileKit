@@ -11,6 +11,7 @@ import MBProgressHUD
 
 public class JIRA {
     
+    // Jira singleton instance
     public static var shared = JIRA()
 
     // END POINTS
@@ -22,6 +23,8 @@ public class JIRA {
     internal static let MainColor = UIColor(red:32/255.0, green: 80.0/255.0, blue: 129.0/255.0,alpha:1.0)
     
     private var _host:String?
+    
+    // jira host eg. http://company.atlassian.net for JIRA cloud hosted
     public var host:String? {
         get{
             return _host
@@ -29,6 +32,8 @@ public class JIRA {
     }
     
     private var _project:String?
+    
+    // this is the core project identifier for the project within JIRA
     public var project:String? {
         get{
             return _project
@@ -36,6 +41,8 @@ public class JIRA {
     }
     
     private var _defaultIssueType:String?
+    
+    // the issue type that you would like the application to use as the default starting case
     public var defaultIssueType:String? {
         get{
             return _defaultIssueType
@@ -50,6 +57,7 @@ public class JIRA {
         return Bundle(url: bundleURL!)!
     }
     
+    //
     public func setup(host:String, project:String, defaultIssueType:String? = "Bug", defaultValues:[String:Any]? = nil){
         self._host = host
         self._project = project
@@ -294,7 +302,6 @@ public class JIRA {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "GET"
         let task = session().dataTask(with:request) { data, response, error in
-            
             if let _ = response as? HTTPURLResponse {
                 do {
                     let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? [AnyHashable:Any]
