@@ -49,6 +49,9 @@ public class JIRA {
         }
     }
     
+    public static var defaultFields:[String:Any]?
+    
+    
     var projects:[JIRAProject]?
     
     internal static func getBundle()->Bundle{
@@ -168,7 +171,12 @@ public class JIRA {
             }
         }*/
         
-        return "\(UIDevice.current.model) \(systemVersion) version: \(versionStr) - build: \(buildStr)"
+        var environmentStr = "\(UIDevice.current.model) \(systemVersion) version: \(versionStr) - build: \(buildStr)"
+        if let defaults = defaultFields, let str = defaults["environment"] as? String {
+            environmentStr += str
+        }
+        
+        return environmentStr
     }
     
     private func createDataTransferObject(_ issueData:[AnyHashable:Any]) -> [String:Any]{
