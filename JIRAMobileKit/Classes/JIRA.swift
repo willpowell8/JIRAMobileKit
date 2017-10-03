@@ -113,9 +113,7 @@ public class JIRA {
             nav.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
             nav.navigationBar.isTranslucent = false
             nav.navigationBar.isOpaque = true
-            currentController.present(nav, animated: true) {
-                print("Shown")
-            }
+            currentController.present(nav, animated: true)
         }
     }
     
@@ -159,9 +157,6 @@ public class JIRA {
         let task = session(username, password).dataTask(with:request) { data, response, error in
             
             if let _ = response as? HTTPURLResponse {
-                if let jsonString = String(data: data!, encoding: .utf8) {
-                    print(jsonString)
-                }
                 do {
                     _ = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
                     UserDefaults.standard.set(username, forKey: "JIRA_USE")
@@ -232,17 +227,10 @@ public class JIRA {
         request.httpMethod = "POST"
         do{
             let jsonData = try JSONSerialization.data(withJSONObject: data, options: JSONSerialization.WritingOptions(rawValue: 0))
-            if let jsonString = String(data: jsonData, encoding: .utf8) {
-                print(jsonString)// check for http errors
-            }
-            
             request.httpBody = jsonData
             let task = session().dataTask(with:request) { data, response, error in
                 
                 if let _ = response as? HTTPURLResponse {
-                    if let jsonString = String(data: data!, encoding: .utf8) {
-                        print(jsonString)
-                    }
                     do {
                         let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
                         if let key = json?.object(forKey: "key") as? String {
@@ -348,9 +336,6 @@ public class JIRA {
         let task = session().dataTask(with:request) { data, response, error in
             
             if let _ = response as? HTTPURLResponse {
-                if let jsonString = String(data: data!, encoding: .utf8) {
-                    print(jsonString)
-                }
                 do {
                     let _ = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
                     completion(nil, key)
@@ -434,9 +419,6 @@ public class JIRA {
         let task = session().dataTask(with:request) { data, response, error in
             
             if let _ = response as? HTTPURLResponse {
-                if let jsonString = String(data: data!, encoding: .utf8) {
-                    print(jsonString)
-                }
                 do {
                     let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)
                     var values = [JIRAEntity]()
