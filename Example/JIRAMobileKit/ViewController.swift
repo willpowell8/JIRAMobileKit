@@ -14,7 +14,9 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
+        //JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
+        JIRA.shared.setup(host: "https://tracking.keytree.net", project: "KC", defaultIssueType: "Keytree raised defect")
+        JIRA.shared.globalDefaultFields = ["environment":"user: example@test.com"]
     }
 
     override func didReceiveMemoryWarning() {
@@ -40,11 +42,42 @@ class ViewController: UIViewController {
         
     }
     
+    func createPDF()->String{
+        let fileName = "test.pdf"
+        let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+        let documentsDirectory = paths[0] as NSString
+        let pathForPDF = documentsDirectory.appending("/" + fileName)
+        
+        UIGraphicsBeginPDFContextToFile(pathForPDF, .zero, nil)
+        
+        let pageSize = CGRect(x:0,y:0,width:400,height:500)
+        UIGraphicsBeginPDFPageWithInfo(pageSize, nil)
+        let font = UIFont(name: "Helvetica", size: 12.0)
+        let textRect = CGRect(x:5,y:5,width:500,height:18)
+        let paragraphStyle:NSMutableParagraphStyle = NSMutableParagraphStyle.default.mutableCopy() as! NSMutableParagraphStyle
+        paragraphStyle.alignment = NSTextAlignment.left
+        paragraphStyle.lineBreakMode = NSLineBreakMode.byWordWrapping
+            
+        let textColor = UIColor.black
+            
+        let textFontAttributes = [
+                NSFontAttributeName: font!,
+                NSForegroundColorAttributeName: textColor,
+                NSParagraphStyleAttributeName: paragraphStyle
+        ]
+            
+        let text = "HELLO WORLD"
+        text.draw(in: textRect, withAttributes: textFontAttributes)
+        
+        UIGraphicsEndPDFContext()
+        return "file://"+pathForPDF
+    }
+    
     func navBarTapped(_ tapRecognizer: UITapGestureRecognizer){
         if tapRecognizer.state == .recognized {
             let point = tapRecognizer.location(in: self.navigationController?.navigationBar)
             if point.x > 100 && point.x < (self.navigationController?.navigationBar.frame.width)!-100 {
-                JIRA.shared.raise()
+                JIRA.shared.raise(defaultFields: ["attachment":createPDF()])
             }
         }
         

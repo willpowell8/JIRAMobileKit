@@ -48,8 +48,8 @@ public class JIRA {
             return _defaultIssueType
         }
     }
-    
-    public static var defaultFields:[String:Any]?
+    // The fields that should be added for all tasks by default
+    public var globalDefaultFields:[String:Any]?
     
     
     var projects:[JIRAProject]?
@@ -67,14 +67,43 @@ public class JIRA {
         self._defaultIssueType = defaultIssueType
     }
     
-    public func raise(){
+    public func raise(defaultFields:[String:Any]? = nil){
         if let rootController = UIApplication.shared.keyWindow?.rootViewController {
+            
+            // Start with global fields
+            var fields = self.globalDefaultFields ?? [String:Any]()
+            
+            // merge in default fields for current view
+            if let singleDefaults = defaultFields {
+                singleDefaults.forEach({ (key, value) in
+                    fields[key] = value
+                })
+            }
+            
+            // Add Image
+            if let image = UIApplication.shared.keyWindow?.capture() {
+                if let attachments = fields["attachment"] {
+                    if var attachmentAry = attachments as? [Any] {
+                        attachmentAry.insert(image, at: 0)
+                        fields["attachment"] = attachmentAry
+                    }else{
+                        fields["attachment"] = [image,attachments]
+                    }
+                }else{
+                    fields["attachment"] = [image]
+                }
+            }
+            if let environment = fields["environment"] as? String {
+                fields["environment"] = environment + " " + JIRA.environmentString()
+            }else{
+                fields["environment"] = JIRA.environmentString()
+            }
             let newVC = JIRARaiseTableViewController()
             var currentController: UIViewController! = rootController
             while( currentController.presentedViewController != nil ) {
                 currentController = currentController.presentedViewController
             }
-            
+            newVC.singleInstanceDefaultFields = fields
             newVC.image = UIApplication.shared.keyWindow?.capture()
             
             let nav = UINavigationController(rootViewController: newVC);
@@ -171,12 +200,7 @@ public class JIRA {
             }
         }*/
         
-        var environmentStr = "\(UIDevice.current.model) \(systemVersion) version: \(versionStr) - build: \(buildStr)"
-        if let defaults = defaultFields, let str = defaults["environment"] as? String {
-            environmentStr += str
-        }
-        
-        return environmentStr
+        return "\(UIDevice.current.model) \(systemVersion) version: \(versionStr) - build: \(buildStr)"
     }
     
     private func createDataTransferObject(_ issueData:[AnyHashable:Any]) -> [String:Any]{
@@ -222,8 +246,8 @@ public class JIRA {
                     do {
                         let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
                         if let key = json?.object(forKey: "key") as? String {
-                            if let image = issueData["attachment"] as? UIImage {
-                                self.postImage(key: key, image: image, completion: completion)
+                            if let attachments = issueData["attachment"] as? [Any] {
+                                self.uploadAttachments(key: key, attachments: attachments, completion: completion)//.postImage(key: key, image: image, completion: completion)
                             }else{
                                 completion(nil, key)
                             }
@@ -250,7 +274,43 @@ public class JIRA {
         }
     }
     
-    internal func postImage(key:String, image:UIImage?, completion: @escaping (_ error:String?,_ key:String?) -> Void)
+    
+    internal func uploadAttachments(key:String, attachments:[Any], completion: @escaping (_ error:String?,_ key:String?) -> Void){
+        var datas = [(name:String, data:Data, mimeType:String)]()
+        attachments.forEach { (attachment) in
+            if let attachmentPath = attachment as? String, let attachmentURL:URL = URL(string:attachmentPath) {
+                if let data = try? Data(contentsOf:attachmentURL) {
+                    let mimeType = attachmentURL.absoluteString.mimeType()
+                    let fileName = attachmentURL.lastPathComponent
+                    datas.append((name: fileName, data: data, mimeType: mimeType))
+                }
+            }else if let attachmentURL = attachment as? URL {
+                if let data = try? Data(contentsOf:attachmentURL) {
+                    let mimeType = attachmentURL.absoluteString.mimeType()
+                    let fileName = attachmentURL.lastPathComponent
+                    datas.append((name: fileName, data: data, mimeType: mimeType))
+                }
+            }else if let attachmentImage = attachment as? UIImage{
+                if let data = UIImagePNGRepresentation(attachmentImage) {
+                    datas.append((name: "Screenshot.png", data: data, mimeType: "image/png"))
+                }
+            }
+        }
+        uploadDataAttachments(key:key, attachments: datas, count:0, completion: completion)
+    }
+    
+    internal func uploadDataAttachments(key:String, attachments:[(name:String, data:Data, mimeType:String)], count:Int, completion: @escaping (_ error:String?,_ key:String?) -> Void){
+        if count >= attachments.count {
+            completion(nil, key)
+        }else{
+            let attachment = attachments[count]
+            self.postAttachment(key: key, data: attachment, completion: { (error, keyStr) in
+                self.uploadDataAttachments(key: key, attachments: attachments, count: (count + 1), completion: completion)
+            })
+        }
+    }
+    
+    internal func postAttachment(key:String, data:(name:String, data:Data, mimeType:String), completion: @escaping (_ error:String?,_ key:String?) -> Void)
     {
         let url = URL(string: "\(host!)/rest/api/2/issue/\(key)/attachments")!
         var request = URLRequest(url: url)
@@ -265,28 +325,20 @@ public class JIRA {
         
         request.addValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
-        let image_data = UIImagePNGRepresentation(image!)
-        
-        
-        if(image_data == nil)
-        {
-            return
-        }
-        
+        let attachmentData = data.data
         
         let body = NSMutableData()
         
-        let fname = "screenshot.png"
-        let mimetype = "image/png"
+        let fname = data.name
+        let mimetype = data.mimeType
         
         //define the data post parameter
         
         body.append("--\(boundary)\r\n".data(using: String.Encoding.utf8)!)
         body.append("Content-Disposition:form-data; name=\"file\"; filename=\"\(fname)\"\r\n".data(using: String.Encoding.utf8)!)
         body.append("Content-Type: \(mimetype)\r\n\r\n".data(using: String.Encoding.utf8)!)
-        body.append(image_data!)
+        body.append(attachmentData)
         body.append("\r\n".data(using: String.Encoding.utf8)!)
-        
         
         body.append("--\(boundary)--\r\n".data(using:String.Encoding.utf8)!)
         

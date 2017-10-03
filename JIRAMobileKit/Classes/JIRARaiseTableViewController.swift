@@ -23,6 +23,8 @@ class JIRARaiseTableViewController: UITableViewController {
     var cells = [JIRACell]()
     var selectedCell:JIRACell?
     
+    var singleInstanceDefaultFields:[String:Any]?
+    
     var image:UIImage?
     var data = [String:Any]() // working ticket data
     
@@ -32,8 +34,8 @@ class JIRARaiseTableViewController: UITableViewController {
             if let type = field.schema?.type {
                 switch(type){
                 default:
-                    if let system = field.schema?.system, system == .environment {
-                        newData["environment"] = JIRA.environmentString()
+                    if let identifier = field.identifier, let instanceData = singleInstanceDefaultFields?[identifier] {
+                        newData[identifier] = instanceData
                     }else if let system = field.schema?.system, system == .attachment {
                         newData["attachment"] = image
                     }else{
