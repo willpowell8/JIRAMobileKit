@@ -38,6 +38,8 @@ class JIRACell:UITableViewCell{
     func height()->CGFloat{
         return 44
     }
+    
+    
 }
 
 
@@ -119,33 +121,76 @@ class JIRAOptionCell:JIRACell{
 }
 
 
-class JIRAImageCell:JIRACell{
-    var imageViewArea:UIImageView?
+class JIRAImageCell:JIRACell,UICollectionViewDelegate, UICollectionViewDataSource{
+    var collectionView:UICollectionView?
+    var attachments:[Any]?
+    
     override func setup(){
         self.accessoryType = .disclosureIndicator
-        imageViewArea = UIImageView()
-        imageViewArea?.backgroundColor = .clear
-        self.addSubview(imageViewArea!)
-        imageViewArea?.translatesAutoresizingMaskIntoConstraints = false
+        let flow = UICollectionViewFlowLayout()
+        flow.scrollDirection = .horizontal
+        flow.itemSize = CGSize(width: 130, height: 170)
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: flow)
+        self.addSubview(collectionView!)
+        //imageViewArea = UIImageView()
+        //imageViewArea?.backgroundColor = .clear
+        //self.addSubview(imageViewArea!)
+        //imageViewArea?.translatesAutoresizingMaskIntoConstraints = false
+        collectionView?.translatesAutoresizingMaskIntoConstraints = false
         if #available(iOS 9.0, *) {
-            imageViewArea?.leftAnchor.constraint(equalTo: self.textLabel!.rightAnchor, constant: 20).isActive = true
-            imageViewArea?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -30).isActive = true
-            imageViewArea?.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10).isActive = true
-            imageViewArea?.topAnchor.constraint(equalTo: self.topAnchor, constant: 10).isActive = true
+            collectionView?.leftAnchor.constraint(equalTo: self.textLabel!.rightAnchor, constant: 10).isActive = true
+            collectionView?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -33).isActive = true
+            collectionView?.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -1).isActive = true
+            collectionView?.topAnchor.constraint(equalTo: self.topAnchor, constant: 1).isActive = true
         }
-        imageViewArea?.contentMode = .scaleAspectFit
+        collectionView?.delegate = self
+        collectionView?.dataSource = self
+        collectionView?.backgroundColor = .clear
+        collectionView?.register(JIRAImageCollectionCell.self, forCellWithReuseIdentifier: "Attachment")
         self.backgroundColor = UIColor.init(white: 0.95, alpha: 1.0)
     }
     
     override func applyData(data:[String:Any]){
         if let field = field, let identifier = field.identifier {
-            if let element = data[identifier] as? UIImage {
-                self.imageViewArea?.image = element
+            if let element = data[identifier] as? [Any] {
+                attachments = element
+                collectionView?.reloadData()
             }
         }
     }
     
     override func height()->CGFloat{
         return 200
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Attachment", for: indexPath)
+        return cell
+    }
+    
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return 1
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return attachments?.count ?? 0
+    }
+    
+}
+
+
+class JIRAImageCollectionCell:UICollectionViewCell{
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        setup()
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        super.init(coder: aDecoder)
+        setup()
+    }
+    
+    func setup(){
+        self.backgroundColor = UIColor.green
     }
 }
