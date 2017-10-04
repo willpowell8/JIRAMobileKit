@@ -205,8 +205,14 @@ class JIRARaiseTableViewController: UITableViewController {
             if type == .array, let system = field?.schema?.system, system == .attachment {
                 
                 if let identifier = field?.identifier, let attachments = data[identifier] as? [Any] {
-                    let attachmentView = JIRAAttachmentsCollectionViewController()
+                    let layout = UICollectionViewFlowLayout()
+                    layout.scrollDirection = .vertical
+                    layout.itemSize = CGSize(width: 130, height: 170)
+                    layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
+                    let attachmentView = JIRAAttachmentsCollectionViewController(collectionViewLayout: layout)
                     attachmentView.attachments = attachments
+                    attachmentView.delegate = self
+                    attachmentView.field = field
                     self.navigationController?.pushViewController(attachmentView, animated: true)
                     /*let jiraImageVC = JiraImageViewController()
                     jiraImageVC.image = image

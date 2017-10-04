@@ -11,20 +11,46 @@ private let reuseIdentifier = "Cell"
 
 class JIRAAttachmentsCollectionViewController: UICollectionViewController {
     
-    
     var attachments = [Any]()
+    var delegate:JIRASubTableViewControllerDelegate?
+    var field:JIRAField? {
+        didSet{
+            if let f = field {
+                self.navigationItem.title = f.name
+            }
+        }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        view.backgroundColor = .white
+        self.collectionView?.backgroundColor = .clear
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
         // Register cell classes
-        self.collectionView!.register(UICollectionViewCell.self, forCellWithReuseIdentifier: reuseIdentifier)
+        self.collectionView!.register(JIRAImageCollectionCell.self, forCellWithReuseIdentifier: reuseIdentifier)
 
-        // Do any additional setup after loading the view.
+        let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add))
+        let editButton = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(edit))
+        self.navigationItem.rightBarButtonItems = [addButton,editButton]
     }
+    
+    func add(){
+        if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
+            let imagePicker = UIImagePickerController()
+            imagePicker.delegate = self
+            imagePicker.sourceType = .photoLibrary;
+            imagePicker.allowsEditing = true
+            self.present(imagePicker, animated: true, completion: nil)
+            
+        }
+    }
+    
+    func edit(){
+        
+    }
+
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
@@ -93,4 +119,21 @@ class JIRAAttachmentsCollectionViewController: UICollectionViewController {
     }
     */
 
+}
+
+extension JIRAAttachmentsCollectionViewController:UIImagePickerControllerDelegate{
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]){
+        if let image = info[UIImagePickerControllerOriginalImage] as? UIImage {
+            self.attachments.append(image)
+            DispatchQueue.main.async {
+                self.delegate?.jiraSelected(field:self.field, item: self.attachments)
+                self.collectionView?.reloadData()
+            }
+        }
+        dismiss(animated:true, completion: nil)
+    }
+}
+
+extension JIRAAttachmentsCollectionViewController:UINavigationControllerDelegate{
+    
 }
