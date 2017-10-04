@@ -59,20 +59,19 @@ class JIRARaiseTableViewController: UITableViewController {
         
         let saveButton = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(save))
         self.navigationItem.rightBarButtonItems = [saveButton]
+        if UserDefaults.standard.string(forKey: "JIRA_USE") == nil || UserDefaults.standard.string(forKey: "JIRA_PWD") == nil {
+            let loginVC = JIRALoginViewController(nibName: "JIRALoginViewController", bundle: JIRA.getBundle())
+            loginVC.delegate = self
+            self.present(loginVC, animated: true, completion: nil)
+        }else{
+            self.load()
+        }
     }
     
     override public func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if closeAction == true {
             self.dismiss(animated: true, completion: nil)
-        }else{
-            if UserDefaults.standard.string(forKey: "JIRA_USE") == nil || UserDefaults.standard.string(forKey: "JIRA_PWD") == nil {
-                let loginVC = JIRALoginViewController(nibName: "JIRALoginViewController", bundle: JIRA.getBundle())
-                loginVC.delegate = self
-                self.present(loginVC, animated: true, completion: nil)
-            }else{
-                self.load()
-            }
         }
     }
     
@@ -205,11 +204,14 @@ class JIRARaiseTableViewController: UITableViewController {
             }
             if type == .array, let system = field?.schema?.system, system == .attachment {
                 
-                if let identifier = field?.identifier, let image = data[identifier] as? UIImage {
-                    let jiraImageVC = JiraImageViewController()
+                if let identifier = field?.identifier, let attachments = data[identifier] as? [Any] {
+                    let attachmentView = JIRAAttachmentsCollectionViewController()
+                    attachmentView.attachments = attachments
+                    self.navigationController?.pushViewController(attachmentView, animated: true)
+                    /*let jiraImageVC = JiraImageViewController()
                     jiraImageVC.image = image
                     jiraImageVC.delegate = self
-                    self.navigationController?.pushViewController(jiraImageVC, animated: true)
+                    self.navigationController?.pushViewController(jiraImageVC, animated: true)*/
                     return;
                 }
                 

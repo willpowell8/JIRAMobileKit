@@ -352,6 +352,10 @@ public class JIRA {
     }
     
     internal func createMeta(_ completion: @escaping (_ error:Bool, _ project:JIRAProject?) -> Void){
+        if let cachedData = UserDefaults.standard.data(forKey: "JIRA_CREATEMETA_CACHE") {
+            processCreateMetaData(cachedData, completion: completion)
+            return
+        }
         let url = URL(string: "\(host!)\(JIRA.url_issue_createmeta)&projectKeys=\(self.project!)")!
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -359,40 +363,46 @@ public class JIRA {
         request.httpMethod = "GET"
         let task = session().dataTask(with:request) { data, response, error in
             if let _ = response as? HTTPURLResponse {
-                do {
-                    let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? [AnyHashable:Any]
-                    var projects = [JIRAProject]()
-                    if let projectsData = json?["projects"] as? [[AnyHashable:Any]]{
-                        projectsData.forEach({ (projectData) in
-                            let project = JIRAProject()
-                            project.applyData(data: projectData)
-                            projects.append(project)
-                        })
-                    }
-                    self.projects = projects
-                    let currentProject = self.projects?.filter({ (project) -> Bool in
-                        return project.key == self.project
-                    })
-                    if currentProject?.count == 1 {
-                        DispatchQueue.main.async {
-                             completion(true,currentProject?[0])
-                        }
-                       
-                    }else{
-                        DispatchQueue.main.async {
-                            completion(false,nil)
-                        }
-                    }
-                    
-                } catch {
-                    print("error serializing JSON: \(error)")
-                    DispatchQueue.main.async {
-                        completion(false,nil)
-                    }
-                }
+                UserDefaults.standard.set(data!, forKey: "JIRA_CREATEMETA_CACHE")
+                UserDefaults.standard.synchronize()
+                self.processCreateMetaData(data, completion: completion)
             }
         }
         task.resume()
+    }
+    
+    func processCreateMetaData(_ data:Data?, completion: @escaping (_ error:Bool, _ project:JIRAProject?) -> Void){
+        do {
+            let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? [AnyHashable:Any]
+            var projects = [JIRAProject]()
+            if let projectsData = json?["projects"] as? [[AnyHashable:Any]]{
+                projectsData.forEach({ (projectData) in
+                    let project = JIRAProject()
+                    project.applyData(data: projectData)
+                    projects.append(project)
+                })
+            }
+            self.projects = projects
+            let currentProject = self.projects?.filter({ (project) -> Bool in
+                return project.key == self.project
+            })
+            if currentProject?.count == 1 {
+                DispatchQueue.main.async {
+                    completion(true,currentProject?[0])
+                }
+                
+            }else{
+                DispatchQueue.main.async {
+                    completion(false,nil)
+                }
+            }
+            
+        } catch {
+            print("error serializing JSON: \(error)")
+            DispatchQueue.main.async {
+                completion(false,nil)
+            }
+        }
     }
     
     internal func getChildEntities(dClass: JIRAEntity.Type,urlstr:String, _ completion: @escaping (_ error:Bool, _ values:[JIRAEntity]?) -> Void){
