@@ -8,7 +8,13 @@
 
 import UIKit
 import MBProgressHUD
+import QuickLook
+
+
 class JIRARaiseTableViewController: UITableViewController {
+    
+    let quickLookController = QLPreviewController()
+    var quickLookSelected = [QLPreviewItem]()
 
     var closeAction:Bool = false
     var project:JIRAProject?
@@ -119,7 +125,9 @@ class JIRARaiseTableViewController: UITableViewController {
                     }
                 case .array:
                     if let system = field.schema?.system, system == .attachment {
-                        cell = JIRAImageCell(style: .value1, reuseIdentifier: "cell")
+                        let imageCell = JIRAImageCell(style: .value1, reuseIdentifier: "cell")
+                        imageCell.delegateSelection = self
+                        cell = imageCell
                     }else{
                         cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
                     }
@@ -207,17 +215,13 @@ class JIRARaiseTableViewController: UITableViewController {
                 if let identifier = field?.identifier, let attachments = data[identifier] as? [Any] {
                     let layout = UICollectionViewFlowLayout()
                     layout.scrollDirection = .vertical
-                    layout.itemSize = CGSize(width: 130, height: 170)
+                    layout.itemSize = CGSize(width: 160, height: 200)
                     layout.sectionInset = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
                     let attachmentView = JIRAAttachmentsCollectionViewController(collectionViewLayout: layout)
                     attachmentView.attachments = attachments
                     attachmentView.delegate = self
                     attachmentView.field = field
                     self.navigationController?.pushViewController(attachmentView, animated: true)
-                    /*let jiraImageVC = JiraImageViewController()
-                    jiraImageVC.image = image
-                    jiraImageVC.delegate = self
-                    self.navigationController?.pushViewController(jiraImageVC, animated: true)*/
                     return;
                 }
                 
@@ -234,6 +238,29 @@ class JIRARaiseTableViewController: UITableViewController {
         let cell = self.cells[indexPath.row]
         return cell.height()
     }
+    
+}
+
+extension JIRARaiseTableViewController:QLPreviewControllerDelegate, QLPreviewControllerDataSource{
+    // MARK: - Preview controller datasource  functions
+    
+    func numberOfPreviewItems(in: QLPreviewController) -> Int {
+        return quickLookSelected.count
+    }
+    
+    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
+        return quickLookSelected[index]
+    }
+    
+    // MARK: - Preview controller delegate functions
+    
+    func previewControllerWillDismiss(_ controller: QLPreviewController) {
+       
+    }
+    
+    func previewController(_ controller: QLPreviewController, shouldOpen url: URL, for item: QLPreviewItem) -> Bool {
+        return true
+    }
 }
 
 extension JIRARaiseTableViewController:JIRALoginViewControllerDelegate{
@@ -243,6 +270,31 @@ extension JIRARaiseTableViewController:JIRALoginViewControllerDelegate{
     
     func loginOK() {
         
+    }
+}
+
+extension JIRARaiseTableViewController:JIRAImageCellDelegate{
+    func jiraImageCellSelected(cell:JIRACell, any: Any, index: Int) {
+        self.selectedCell = cell
+        if let image = any as? UIImage {
+            let jiraImageVC = JiraImageViewController()
+            jiraImageVC.image = image
+            jiraImageVC.attachmentID = index
+            jiraImageVC.delegate = self
+            self.navigationController?.pushViewController(jiraImageVC, animated: true)
+        }else if let urlString = any as? String, let url = URL(string:urlString){
+            let filePreview = url as QLPreviewItem
+            quickLookSelected = [filePreview]
+            quickLookController.delegate = self
+            quickLookController.dataSource = self
+            self.present(quickLookController, animated: true, completion: nil)
+        }else if let url =  any as? URL{
+            let filePreview = url as QLPreviewItem
+            quickLookSelected = [filePreview]
+            quickLookController.delegate = self
+            quickLookController.dataSource = self
+            self.present(quickLookController, animated: true, completion: nil)
+        }
     }
 }
 
@@ -257,12 +309,16 @@ extension JIRARaiseTableViewController:JIRASubTableViewControllerDelegate {
 }
 
 extension JIRARaiseTableViewController:JiraImageViewControllerDelegate {
-    func updateImage(image: UIImage) {
+    func updateImage(image: UIImage, attachmentID:Int) {
         if let selectedCell = self.selectedCell {
             guard let field = selectedCell.field, let identifier = field.identifier else {
                 return
             }
-            self.data[identifier] = image
+            if var ary = self.data[identifier] as? [Any] {
+                ary[attachmentID] = image
+                self.data[identifier] = ary
+            }
+            
             self.selectedCell?.applyData(data: self.data)
         }
     }

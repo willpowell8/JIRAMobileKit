@@ -6,10 +6,14 @@
 //
 
 import UIKit
+import QuickLook
 
 private let reuseIdentifier = "Cell"
 
 class JIRAAttachmentsCollectionViewController: UICollectionViewController {
+    
+    let quickLookController = QLPreviewController()
+    var quickLookSelected = [QLPreviewItem]()
     
     var attachments = [Any]()
     var delegate:JIRASubTableViewControllerDelegate?
@@ -32,8 +36,8 @@ class JIRAAttachmentsCollectionViewController: UICollectionViewController {
         self.collectionView!.register(JIRAImageCollectionCell.self, forCellWithReuseIdentifier: reuseIdentifier)
 
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(add))
-        let editButton = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(edit))
-        self.navigationItem.rightBarButtonItems = [addButton,editButton]
+        //let editButton = UIBarButtonItem(barButtonSystemItem: .edit, target: self, action: #selector(edit))
+        self.navigationItem.rightBarButtonItems = [addButton]//,editButton]
     }
     
     func add(){
@@ -71,21 +75,45 @@ class JIRAAttachmentsCollectionViewController: UICollectionViewController {
 
     override func numberOfSections(in collectionView: UICollectionView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return attachments.count
+        return 1
     }
 
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
-        return 1
+        return attachments.count
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! JIRAImageCollectionCell
     
-        // Configure the cell
+        let item = self.attachments[indexPath.row]
+        cell.applyData(item)
     
         return cell
+    }
+    
+    override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let any  = self.attachments[indexPath.row]
+        if let image = any as? UIImage {
+            let jiraImageVC = JiraImageViewController()
+            jiraImageVC.image = image
+            jiraImageVC.attachmentID = indexPath.row
+            jiraImageVC.delegate = self
+            self.navigationController?.pushViewController(jiraImageVC, animated: true)
+        }else if let urlString = any as? String, let url = URL(string:urlString){
+            let filePreview = url as QLPreviewItem
+            quickLookSelected = [filePreview]
+            quickLookController.delegate = self
+            quickLookController.dataSource = self
+            self.present(quickLookController, animated: true, completion: nil)
+        }else if let url =  any as? URL{
+            let filePreview = url as QLPreviewItem
+            quickLookSelected = [filePreview]
+            quickLookController.delegate = self
+            quickLookController.dataSource = self
+            self.present(quickLookController, animated: true, completion: nil)
+        }
     }
 
     // MARK: UICollectionViewDelegate
@@ -136,4 +164,35 @@ extension JIRAAttachmentsCollectionViewController:UIImagePickerControllerDelegat
 
 extension JIRAAttachmentsCollectionViewController:UINavigationControllerDelegate{
     
+}
+
+
+extension JIRAAttachmentsCollectionViewController:QLPreviewControllerDelegate, QLPreviewControllerDataSource{
+    // MARK: - Preview controller datasource  functions
+    
+    func numberOfPreviewItems(in: QLPreviewController) -> Int {
+        return quickLookSelected.count
+    }
+    
+    func previewController(_ controller: QLPreviewController, previewItemAt index: Int) -> QLPreviewItem {
+        return quickLookSelected[index]
+    }
+    
+    // MARK: - Preview controller delegate functions
+    
+    func previewControllerWillDismiss(_ controller: QLPreviewController) {
+        
+    }
+    
+    func previewController(_ controller: QLPreviewController, shouldOpen url: URL, for item: QLPreviewItem) -> Bool {
+        return true
+    }
+}
+
+extension JIRAAttachmentsCollectionViewController:JiraImageViewControllerDelegate {
+    func updateImage(image: UIImage, attachmentID:Int) {
+        attachments[attachmentID] = image
+        collectionView?.reloadData()
+        self.delegate?.jiraSelected(field:self.field, item: self.attachments)
+    }
 }

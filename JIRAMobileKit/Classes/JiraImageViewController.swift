@@ -9,7 +9,7 @@
 import UIKit
 
 protocol JiraImageViewControllerDelegate {
-    func updateImage(image:UIImage)
+    func updateImage(image:UIImage, attachmentID:Int)
 }
 
 class JiraImageViewController: UIViewController {
@@ -20,6 +20,7 @@ class JiraImageViewController: UIViewController {
             canvas?.image = image
         }
     }
+    var attachmentID:Int?
     var delegate:JiraImageViewControllerDelegate?
     
     override func viewDidLoad() {
@@ -53,7 +54,7 @@ class JiraImageViewController: UIViewController {
 
     
     func apply(){
-        self.delegate?.updateImage(image: self.canvas!.image!)
+        self.delegate?.updateImage(image: self.canvas!.image!,attachmentID: attachmentID ?? 0)
         self.navigationController?.popViewController(animated: true)
     }
 

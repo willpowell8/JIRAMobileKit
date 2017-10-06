@@ -121,9 +121,15 @@ class JIRAOptionCell:JIRACell{
 }
 
 
+protocol JIRAImageCellDelegate {
+    func jiraImageCellSelected(cell:JIRACell,any:Any, index:Int)
+}
+
+
 class JIRAImageCell:JIRACell,UICollectionViewDelegate, UICollectionViewDataSource{
     var collectionView:UICollectionView?
     var attachments:[Any]?
+    var delegateSelection:JIRAImageCellDelegate?
     
     override func setup(){
         self.accessoryType = .disclosureIndicator
@@ -164,7 +170,10 @@ class JIRAImageCell:JIRACell,UICollectionViewDelegate, UICollectionViewDataSourc
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Attachment", for: indexPath)
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Attachment", for: indexPath) as! JIRAImageCollectionCell
+        if let item = attachments?[indexPath.row] {
+            cell.applyData(item)
+        }
         return cell
     }
     
@@ -176,10 +185,18 @@ class JIRAImageCell:JIRACell,UICollectionViewDelegate, UICollectionViewDataSourc
         return attachments?.count ?? 0
     }
     
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if let item = attachments?[indexPath.row] {
+            delegateSelection?.jiraImageCellSelected(cell:self, any: item, index: indexPath.row)
+        }
+    }
+    
 }
 
 
 class JIRAImageCollectionCell:UICollectionViewCell{
+    let name = UILabel()
+    let imageView = UIImageView()
     override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
@@ -190,7 +207,39 @@ class JIRAImageCollectionCell:UICollectionViewCell{
         setup()
     }
     
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        imageView.image = nil
+    }
+    
+    func applyData(_ any:Any){
+        if let image = any as? UIImage {
+            imageView.image = image
+            name.text = "PNG"
+        }else if let urlStr = any as? String, let url = URL(string:urlStr){
+            name.text =  url.lastPathComponent
+        }else if let url = any as? URL{
+            name.text =  url.lastPathComponent
+        }
+    }
+    
     func setup(){
-        self.backgroundColor = UIColor.green
+        self.addSubview(name)
+        self.addSubview(imageView)
+        name.translatesAutoresizingMaskIntoConstraints = false
+        name.textAlignment = .center
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .scaleAspectFit
+        if #available(iOS 9.0, *) {
+            name.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 3).isActive = true
+            name.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -3).isActive = true
+            name.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -1).isActive = true
+            name.heightAnchor.constraint(equalToConstant: 20) .isActive = true
+            
+            imageView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 0).isActive = true
+            imageView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: 0).isActive = true
+            imageView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -23).isActive = true
+            imageView.topAnchor.constraint(equalTo: self.topAnchor, constant: 0).isActive = true
+        }
     }
 }
