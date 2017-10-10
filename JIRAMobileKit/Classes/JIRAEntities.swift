@@ -29,9 +29,9 @@ enum JIRASchemaType:String {
 }
 
 enum JIRAOperations:String {
-    case string = "string"
-    case array = "array"
-    case number = "number"
+    case set = "set"
+    case add = "add"
+    case remove = "remove"
 }
 
 enum JIRASchemaSystem:String {
@@ -214,6 +214,14 @@ class JIRAField{
         if let name = data["name"] as? String {
             self.name = name
         }
+        if let operations = data["operations"] as? [String]{
+            let ops = operations.flatMap({ (operation) -> JIRAOperations? in
+                return JIRAOperations(rawValue:operation)
+            })
+            self.operations = ops
+        }
+        
+        
         if let autoCompleteUrl = data["autoCompleteUrl"] as? String {
             self.autoCompleteUrl = autoCompleteUrl
         }

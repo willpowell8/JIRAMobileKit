@@ -114,31 +114,34 @@ class JIRARaiseTableViewController: UITableViewController {
     
     func createCells(){
         issueType?.fields?.forEach({ (field) in
-            if let type = field.schema?.type {
-                var cell:JIRACell?
-                switch(type){
-                case .string:
-                    if let allowedValues = field.allowedValues, allowedValues.count > 0 {
+            let validField = (field.operations?.contains(JIRAOperations.set))! || field.identifier! == "attachment"
+            if validField {
+                if let type = field.schema?.type {
+                    var cell:JIRACell?
+                    switch(type){
+                    case .string:
+                        if let allowedValues = field.allowedValues, allowedValues.count > 0 {
+                            cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
+                        }else{
+                            cell = JIRATextFieldCell(style: .value1, reuseIdentifier: "cell")
+                        }
+                    case .array:
+                        if let system = field.schema?.system, system == .attachment {
+                            let imageCell = JIRAImageCell(style: .value1, reuseIdentifier: "cell")
+                            imageCell.delegateSelection = self
+                            cell = imageCell
+                        }else{
+                            cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
+                        }
+                    default:
                         cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
-                    }else{
-                        cell = JIRATextFieldCell(style: .value1, reuseIdentifier: "cell")
                     }
-                case .array:
-                    if let system = field.schema?.system, system == .attachment {
-                        let imageCell = JIRAImageCell(style: .value1, reuseIdentifier: "cell")
-                        imageCell.delegateSelection = self
-                        cell = imageCell
-                    }else{
-                        cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
+                    if let cellV = cell {
+                        cellV.delegate = self
+                        cellV.field = field
+                        cellV.start(field: field, data: self.data)
+                        self.cells.append(cellV)
                     }
-                default:
-                    cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
-                }
-                if let cellV = cell {
-                    cellV.delegate = self
-                    cellV.field = field
-                    cellV.start(field: field, data: self.data)
-                    self.cells.append(cellV)
                 }
             }
         })
