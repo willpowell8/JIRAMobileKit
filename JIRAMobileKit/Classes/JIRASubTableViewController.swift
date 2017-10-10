@@ -183,6 +183,10 @@ class JIRASubTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        applySelectionToggle(tableView, didSelectRowAt: indexPath)
+    }
+    
+    func applySelectionToggle(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
         if let type = field?.schema?.type {
             var elementTemp:DisplayClass?
             if elements.count > 0, elementsFiltered[0] is ChildrenClass {
@@ -198,23 +202,30 @@ class JIRASubTableViewController: UITableViewController {
                 return
             }
             if type == .array {
-                selectedFields.append(element)
-                tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+                var firstIndex:Int = -1
+                for i in 0..<selectedFields.count {
+                    let displayClass = selectedFields[i]
+                    if displayClass.label == element.label {
+                        firstIndex = i
+                        break;
+                    }
+                }
+                if firstIndex > -1 {
+                    selectedFields.remove(at: firstIndex)
+                    tableView.cellForRow(at: indexPath)?.accessoryType = .none
+                }else{
+                    selectedFields.append(element)
+                    tableView.cellForRow(at: indexPath)?.accessoryType = .checkmark
+                }
             }else{
-                delegate?.jiraSelected(field:self.field, item: elements[indexPath.row])
+                delegate?.jiraSelected(field:self.field, item: element)
                 navigationController?.popViewController(animated: true)
             }
         }
     }
     
     override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
-        let element = elementsFiltered[indexPath.row]
-        if let index = selectedFields.index(where: { (displayClass) -> Bool in
-            return displayClass.label == element.label
-        }) {
-            selectedFields.remove(at: index)
-            tableView.cellForRow(at: indexPath)?.accessoryType = .none
-        }
+        applySelectionToggle(tableView, didSelectRowAt: indexPath)
     }
 
 }
