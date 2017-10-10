@@ -39,7 +39,6 @@ class JIRACell:UITableViewCell{
         return 44
     }
     
-    
 }
 
 

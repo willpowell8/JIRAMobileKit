@@ -153,6 +153,10 @@ class JIRARaiseTableViewController: UITableViewController {
     
     func save(){
         // todo validate before save
+        
+        cells.forEach { (cell) in
+            cell.deselect()
+        }
         let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
         hud.mode = MBProgressHUDMode.indeterminate
         hud.label.text = "Creating..."
