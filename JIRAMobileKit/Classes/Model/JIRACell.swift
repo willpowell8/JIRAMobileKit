@@ -40,9 +40,3 @@ class JIRACell:UITableViewCell{
     }
     
 }
-
-class JIRATextCell:JIRACell{
-    override func setup(){
-        
-    }
-}
