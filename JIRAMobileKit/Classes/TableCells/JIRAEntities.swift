@@ -117,6 +117,38 @@ class JIRAAllowedValue:JIRAEntity,DisplayClass{
     }
 }
 
+
+class JIRAJQLValue:JIRAEntity,DisplayClass{
+    var displayName:String?
+    var value:String?
+    func applyData(data:[AnyHashable:Any]){
+        if let displayName = data["displayName"] as? String {
+            self.displayName = displayName
+        }
+        if let value = data["value"] as? String {
+            self.value = value
+        }
+    }
+    
+    var label: String? {
+        get{
+            if let displayName = displayName {
+                return displayName
+            }
+            if let value = value {
+                return value
+            }
+            return nil
+        }
+    }
+    
+    
+    override func export()->Any?{
+        return ["displayName":displayName ?? "","value":value ?? ""]
+    }
+}
+
+
 class JIRALabel:JIRAEntity,DisplayClass{
     var labelVal:String?
     var html:String?

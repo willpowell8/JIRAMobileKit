@@ -65,7 +65,7 @@ class JIRARaiseTableViewController: UITableViewController {
         
         let saveButton = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(save))
         self.navigationItem.rightBarButtonItems = [saveButton]
-        if UserDefaults.standard.string(forKey: "JIRA_USE") == nil || UserDefaults.standard.string(forKey: "JIRA_PWD") == nil {
+        if JIRA.shared.username == nil || JIRA.shared.password == nil {
             let loginVC = JIRALoginViewController(nibName: "JIRALoginViewController", bundle: JIRA.getBundle())
             loginVC.delegate = self
             self.present(loginVC, animated: true, completion: nil)
@@ -114,7 +114,7 @@ class JIRARaiseTableViewController: UITableViewController {
     
     func createCells(){
         issueType?.fields?.forEach({ (field) in
-            let validField = (field.operations?.contains(JIRAOperations.set))! || field.identifier! == "attachment"
+            let validField = field.required || (field.operations?.contains(JIRAOperations.set))! || field.identifier! == "attachment"
             if validField {
                 if let type = field.schema?.type {
                     var cell:JIRACell?

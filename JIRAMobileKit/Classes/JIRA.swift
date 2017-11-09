@@ -19,6 +19,7 @@ public class JIRA {
     private static let url_issue_attachments = "rest/api/2/issue/%@/attachments";
     private static let url_issue_createmeta = "/rest/api/2/issue/createmeta?expand=projects.issuetypes.fields"
     private static let url_myself = "/rest/api/2/myself"
+    private static let url_jql_property = "/rest/api/1.0/jql/autocomplete?"
     
     internal static let MainColor = UIColor(red:32/255.0, green: 80.0/255.0, blue: 129.0/255.0,alpha:1.0)
     
@@ -30,6 +31,45 @@ public class JIRA {
             return _host
         }
     }
+    
+    private var _username:String?
+    
+    // jira host eg. http://company.atlassian.net for JIRA cloud hosted
+    var username:String? {
+        get{
+            if _username != nil {
+                return _username
+            }
+            return UserDefaults.standard.string(forKey: "JIRA_USE")
+        }
+        set {
+            _username = newValue
+            UserDefaults.standard.set(newValue, forKey: "JIRA_USE")
+            UserDefaults.standard.synchronize()
+        }
+    }
+    
+    private var _password:String?
+    var password:String? {
+        get{
+            if _password != nil {
+                return _password
+            }
+            return UserDefaults.standard.string(forKey: "JIRA_PWD")
+        }
+        set {
+            _password = newValue
+            UserDefaults.standard.set(newValue, forKey: "JIRA_PWD")
+            UserDefaults.standard.synchronize()
+        }
+    }
+    
+    
+    func preAuth(username:String, password:String){
+        _password = password
+        _username = username
+    }
+    
     
     private var _project:String?
     
@@ -62,9 +102,25 @@ public class JIRA {
     
     //
     public func setup(host:String, project:String, defaultIssueType:String? = "Bug", defaultValues:[String:Any]? = nil){
+        var shouldReset = false
+        if let originalHost = UserDefaults.standard.string(forKey: "JIRA_HOST"), let originalProject = UserDefaults.standard.string(forKey: "JIRA_PROJECT") {
+            if originalHost != host || project != originalProject {
+                shouldReset = true
+            }
+        }else{
+            shouldReset = true
+        }
         self._host = host
         self._project = project
         self._defaultIssueType = defaultIssueType
+        if shouldReset {
+            UserDefaults.standard.set(nil, forKey: "JIRA_CREATEMETA_CACHE")
+            UserDefaults.standard.set(host,forKey: "JIRA_HOST")
+            UserDefaults.standard.set(project,forKey: "JIRA_PROJECT")
+            UserDefaults.standard.set(nil, forKey: "JIRA_PWD")
+            UserDefaults.standard.set(nil, forKey: "JIRA_USE")
+            UserDefaults.standard.synchronize()
+        }
     }
     
     public func raise(defaultFields:[String:Any]? = nil){
@@ -127,8 +183,8 @@ public class JIRA {
     }
 
     func getBearerToken()->String?{
-        if let username = UserDefaults.standard.string(forKey: "JIRA_USE"), let password =
-            UserDefaults.standard.string(forKey: "JIRA_PWD") {
+        if let username = self.username, let password =
+            self.password {
             return generateBearerToken(username: username, password: password)
         }
         return ""
@@ -159,9 +215,8 @@ public class JIRA {
             if let _ = response as? HTTPURLResponse {
                 do {
                     _ = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
-                    UserDefaults.standard.set(username, forKey: "JIRA_USE")
-                    UserDefaults.standard.set(password, forKey: "JIRA_PWD")
-                    UserDefaults.standard.synchronize()
+                    self.username = username
+                    self.password = password
                     completion(true, nil)
                 } catch {
                     print("error serializing JSON: \(error)")
@@ -366,6 +421,45 @@ public class JIRA {
                 UserDefaults.standard.set(data!, forKey: "JIRA_CREATEMETA_CACHE")
                 UserDefaults.standard.synchronize()
                 self.processCreateMetaData(data, completion: completion)
+            }
+        }
+        task.resume()
+    }
+    
+    internal func jqlQuery(field:JIRAField, term:String,_ completion: @escaping (_ error:Bool, _ options:[JIRAJQLValue]?) -> Void){
+        guard let fieldName = field.name else{
+            return;
+        }
+        
+        
+       guard let fieldNameEscaped = fieldName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+            let termEscaped = term.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
+            let url = URL(string:"\(host!)\(JIRA.url_jql_property)fieldName=\(fieldNameEscaped)&fieldValue=\(termEscaped)") else{
+            return
+        }
+        var request = URLRequest(url: url)
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpMethod = "GET"
+        let task = session().dataTask(with:request) { data, response, error in
+            if let _ = response as? HTTPURLResponse {
+                do {
+                    let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? [AnyHashable:Any]
+                    if let items = json?["results"] as? [[String:String]] {
+                        let options = items.flatMap({ (item) -> JIRAJQLValue? in
+                            let v = JIRAJQLValue()
+                            v.applyData(data: item)
+                            return v
+                        })
+                        return completion(false, options)
+                    }
+                    return completion(true, nil)
+                } catch {
+                    print("error serializing JSON: \(error)")
+                    DispatchQueue.main.async {
+                        completion(true,nil)
+                    }
+                }
             }
         }
         task.resume()

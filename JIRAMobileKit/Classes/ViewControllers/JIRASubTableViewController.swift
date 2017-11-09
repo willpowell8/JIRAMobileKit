@@ -113,6 +113,7 @@ class JIRASubTableViewController: UITableViewController {
         self.tableView.tableFooterView = UIView()
         searchController.searchResultsUpdater = self
         searchController.dimsBackgroundDuringPresentation = false
+        searchController.searchBar.delegate = self
         definesPresentationContext = true
         tableView.tableHeaderView = searchController.searchBar
     }
@@ -157,7 +158,9 @@ class JIRASubTableViewController: UITableViewController {
         if elements.count > 0, elementsFiltered[0] is ChildrenClass  {
             if let currentElement = elementsFiltered[indexPath.section] as? ChildrenClass {
                 if let children = currentElement.children {
-                    element = children[indexPath.row] as! DisplayClass
+                    if let e = children[indexPath.row] as? DisplayClass {
+                        element = e
+                    }
                 }
             }
         }else{
@@ -193,8 +196,8 @@ class JIRASubTableViewController: UITableViewController {
             var elementTemp:DisplayClass?
             if elements.count > 0, elementsFiltered[0] is ChildrenClass {
                 if let currentElement = elementsFiltered[indexPath.section] as? ChildrenClass {
-                    if let children = currentElement.children {
-                        elementTemp = children[indexPath.row] as! DisplayClass
+                    if let children = currentElement.children, let e = children[indexPath.row] as? DisplayClass {
+                        elementTemp = e
                     }
                 }
             }else{
@@ -244,6 +247,22 @@ extension JIRASubTableViewController: UISearchResultsUpdating {
             })
         }else{
             elementsFiltered = elements
+        }
+    }
+}
+
+extension JIRASubTableViewController: UISearchBarDelegate {
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        guard let searchText = searchBar.text, let field = self.field else {
+            return
+        }
+        JIRA.shared.jqlQuery(field:field, term: searchText) { (error, options) in
+            if let o = options {
+                self.elements = o
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+            }
         }
     }
 }
