@@ -313,7 +313,11 @@ public class JIRA {
     }
     
     internal func create(issueData:[AnyHashable:Any], completion: @escaping (_ error:String?,_ key:String?) -> Void){
-        let url = URL(string: "\(host!)/\(JIRA.url_issue)")!
+        guard let url = URL(string: "\(host!)/\(JIRA.url_issue)") else {
+            print("JIRA KIT Error - Create url invalid")
+            completion("Create url invalid", nil)
+            return
+        }
         let data = createDataTransferObject(issueData)
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -324,29 +328,33 @@ public class JIRA {
             request.httpBody = jsonData
             let task = session().dataTask(with:request) { data, response, error in
                 
-                if let _ = response as? HTTPURLResponse {
-                    do {
-                        let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
-                        if let key = json?.object(forKey: "key") as? String {
-                            if let attachments = issueData["attachment"] as? [Any] {
-                                self.uploadAttachments(key: key, attachments: attachments, completion: completion)//.postImage(key: key, image: image, completion: completion)
-                            }else{
-                                completion(nil, key)
-                            }
-                        }else if let errors = json?.object(forKey: "errors") as? [String:Any] {
-                            var str = [String]()
-                            errors.forEach({ (key, value) in
-                                if let val = value as? String {
-                                    str.append(val)
-                                }
-                            })
-                            let errorMessage = str.joined(separator: "\n")
-                            completion(errorMessage, nil)
+                guard  let _ = response as? HTTPURLResponse else {
+                    return
+                }
+                do {
+                    let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
+                    if let key = json?.object(forKey: "key") as? String {
+                        if let attachments = issueData["attachment"] as? [Any] {
+                            self.uploadAttachments(key: key, attachments: attachments, completion: completion)
+                        }else{
+                            completion(nil, key)
                         }
-                    } catch {
-                        print("error serializing JSON: \(error)")
-                        completion("error serializing JSON: \(error)", nil)
+                        return
+                    }else if let errors = json?.object(forKey: "errors") as? [String:Any] {
+                        var str = [String]()
+                        errors.forEach({ (key, value) in
+                            if let val = value as? String {
+                                str.append(val)
+                            }
+                        })
+                        let errorMessage = str.joined(separator: "\n")
+                        completion(errorMessage, nil)
+                        return
                     }
+                    completion("Could not complete create", nil)
+                } catch {
+                    print("error serializing JSON: \(error)")
+                    completion("error serializing JSON: \(error)", nil)
                 }
             }
             task.resume()
@@ -386,7 +394,7 @@ public class JIRA {
             completion(nil, key)
         }else{
             let attachment = attachments[count]
-            self.postAttachment(key: key, data: attachment, completion: { (error, keyStr) in
+            postAttachment(key: key, data: attachment, completion: { (error, keyStr) in
                 self.uploadDataAttachments(key: key, attachments: attachments, count: (count + 1), completion: completion)
             })
         }
@@ -402,9 +410,6 @@ public class JIRA {
         request.httpMethod = "POST"
         
         let boundary = generateBoundaryString()
-        
-        //define the multipart request type
-        
         request.addValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         
         let attachmentData = data.data
@@ -469,7 +474,6 @@ public class JIRA {
         guard let fieldName = field.name else{
             return;
         }
-        
         
        guard let fieldNameEscaped = fieldName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
             let termEscaped = term.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
@@ -539,7 +543,10 @@ public class JIRA {
     }
     
     internal func getChildEntities(dClass: JIRAEntity.Type,urlstr:String, _ completion: @escaping (_ error:Bool, _ values:[JIRAEntity]?) -> Void){
-        guard var urlComponents = URLComponents(string: urlstr) else { return }
+        guard var urlComponents = URLComponents(string: urlstr) else {
+            completion(true, nil)
+            return
+        }
         var parameters = urlComponents.queryItems?.filter({ (queryItem) -> Bool in
             return queryItem.value != "null"
         })
@@ -554,13 +561,15 @@ public class JIRA {
         }
         parameters?.append(URLQueryItem(name: "project", value: project))
         urlComponents.queryItems = parameters
-        let url = urlComponents.url!
+        guard let url = urlComponents.url else {
+            completion(true, nil)
+            return
+        }
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "GET"
         let task = session().dataTask(with:request) { data, response, error in
-            
             if let _ = response as? HTTPURLResponse {
                 do {
                     let json = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)
