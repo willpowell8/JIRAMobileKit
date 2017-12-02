@@ -23,6 +23,7 @@ class JIRALoginViewController: UIViewController,UITextFieldDelegate {
     @IBOutlet weak var projectLabel:UILabel!
     
     var delegate:JIRALoginViewControllerDelegate?
+    var onLoginCompletionBlock:(()->Void)?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,26 +44,48 @@ class JIRALoginViewController: UIViewController,UITextFieldDelegate {
     
 
     @IBAction func close(){
-        self.delegate?.loginDismissed()
-        self.dismiss(animated: true, completion: nil)
+        usernameField.resignFirstResponder()
+        passwordField.resignFirstResponder()
+        delegate?.loginDismissed()
+        dismiss(animated: true, completion: nil)
     }
     
     @IBAction func login(){
-        if let username = self.usernameField.text, let password = self.passwordField.text {
-            
-            let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
-            hud.mode = .indeterminate
-            hud.label.text = "Logging in ..."
-            JIRA.shared.login(username: username, password: password) { (valid, error) in
-                DispatchQueue.main.async {
-                    hud.hide(animated: true)
-                    if valid == true {
-                        self.dismiss(animated: true, completion: nil)
-                    }else{
-                        self.loginFailure(error)
-                    }
+        guard let username = usernameField.text, !username.isEmpty else {
+            let alert = UIAlertController(title: "Missing Username", message: "Username cannot be blank", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ok", style: .default) { action in
+                self.usernameField.becomeFirstResponder()
+            })
+            present(alert, animated: true, completion: nil)
+            return
+        }
+        guard let password = passwordField.text, !password.isEmpty else {
+            let alert = UIAlertController(title: "Missing Password", message: "Password cannot be blank", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ok", style: .default) { action in
+                self.passwordField.becomeFirstResponder()
+            })
+            present(alert, animated: true, completion: nil)
+            return
+        }
+        usernameField.resignFirstResponder()
+        passwordField.resignFirstResponder()
+        let hud = MBProgressHUD.showAdded(to: self.view, animated: true)
+        hud.mode = .indeterminate
+        hud.label.text = "Logging in ..."
+        JIRA.shared.login(username: username, password: password) { (valid, error) in
+            DispatchQueue.main.async {
+                hud.hide(animated: true)
+                guard valid == true else
+                {
+                    self.loginFailure(error)
+                    return
                 }
-                
+                self.dismiss(animated: true, completion: {
+                    if let completion = self.onLoginCompletionBlock {
+                        completion()
+                    }
+                    self.delegate?.loginOK()
+                })
             }
         }
     }
@@ -70,10 +93,8 @@ class JIRALoginViewController: UIViewController,UITextFieldDelegate {
     func loginFailure(_ error:String?){
         let errorStr = error ?? "Unknown error occured"
         let alert = UIAlertController(title: "Login Failure", message: errorStr, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Try Again", style: .default) { action in
-            // perhaps use action.title here
-        })
-        self.present(alert, animated: true, completion: nil)
+        alert.addAction(UIAlertAction(title: "Try Again", style: .default) { action in  })
+        present(alert, animated: true, completion: nil)
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {

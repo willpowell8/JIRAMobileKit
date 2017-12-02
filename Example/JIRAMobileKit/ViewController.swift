@@ -16,6 +16,8 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         //JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
         JIRA.shared.setup(host: "https://tracking.keytree.net", project: "KC", defaultIssueType: "Keytree raised defect")
+        //JIRA.shared.setup(host: "https://holtrenfrew.atlassian.net", project: "HSD")
+        //JIRA.shared.preAuth(username:"Holts360.User@holtrenfrew.com", password:"R3nfr3w99")
         JIRA.shared.globalDefaultFields = ["environment":"user: example@test.com"]
     }
 
@@ -75,12 +77,35 @@ class ViewController: UIViewController {
     
     func navBarTapped(_ tapRecognizer: UITapGestureRecognizer){
         if tapRecognizer.state == .recognized {
+            let subviews = navigationController?.navigationBar.subviews
             let point = tapRecognizer.location(in: self.navigationController?.navigationBar)
-            if point.x > 100 && point.x < (self.navigationController?.navigationBar.frame.width)!-100 {
+            var minX = CGFloat(0)
+            var maxX = (self.navigationController?.navigationBar.frame.width)! - CGFloat(0)
+            subviews?.forEach({ (view) in
+                if String(describing: type(of: view)) == "_UINavigationBarContentView"{
+                    let navSubViews = view.subviews
+                    if navSubViews.count >= 2, String(describing: type(of: navSubViews[0])) == "_UIButtonBarStackView", String(describing: type(of: navSubViews[1])) == "_UIButtonBarStackView" {
+                        
+                        // left stack view
+                        let leftStackMaxX = CGFloat(navSubViews[0].frame.origin.x+navSubViews[0].frame.size.width) + CGFloat(20)
+                        if minX < leftStackMaxX {
+                           minX = leftStackMaxX
+                        }
+                        
+                        // right stack view
+                        let rightStackMinX = navSubViews[1].frame.origin.x - CGFloat(20)
+                        if maxX > rightStackMinX {
+                            maxX = rightStackMinX
+                        }
+                        
+                    }
+                }
+            })
+            
+            if point.x > minX && point.x < maxX {
                 JIRA.shared.raise(defaultFields: ["attachment":createPDF()])
             }
         }
-        
     }
 }
 

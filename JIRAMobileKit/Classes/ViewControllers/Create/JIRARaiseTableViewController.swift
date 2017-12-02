@@ -15,8 +15,6 @@ class JIRARaiseTableViewController: UITableViewController {
     
     let quickLookController = QLPreviewController()
     var quickLookSelected = [QLPreviewItem]()
-
-    var closeAction:Bool = false
     var project:JIRAProject?
     var issueType:JIRAIssueType? {
         didSet{
@@ -65,20 +63,7 @@ class JIRARaiseTableViewController: UITableViewController {
         
         let saveButton = UIBarButtonItem(barButtonSystemItem: .save, target: self, action: #selector(save))
         self.navigationItem.rightBarButtonItems = [saveButton]
-        if JIRA.shared.username == nil || JIRA.shared.password == nil {
-            let loginVC = JIRALoginViewController(nibName: "JIRALoginViewController", bundle: JIRA.getBundle())
-            loginVC.delegate = self
-            self.present(loginVC, animated: true, completion: nil)
-        }else{
-            self.load()
-        }
-    }
-    
-    override public func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        if closeAction == true {
-            self.dismiss(animated: true, completion: nil)
-        }
+        self.load()
     }
     
     func load(){
@@ -267,16 +252,6 @@ extension JIRARaiseTableViewController:QLPreviewControllerDelegate, QLPreviewCon
     
     func previewController(_ controller: QLPreviewController, shouldOpen url: URL, for item: QLPreviewItem) -> Bool {
         return true
-    }
-}
-
-extension JIRARaiseTableViewController:JIRALoginViewControllerDelegate{
-    func loginDismissed(){
-        self.closeAction = true
-    }
-    
-    func loginOK() {
-        
     }
 }
 
