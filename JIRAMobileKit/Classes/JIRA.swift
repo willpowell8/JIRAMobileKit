@@ -110,9 +110,9 @@ public class JIRA {
         }else{
             shouldReset = true
         }
-        self._host = host
-        self._project = project
-        self._defaultIssueType = defaultIssueType
+        _host = host
+        _project = project
+        _defaultIssueType = defaultIssueType
         if shouldReset {
             UserDefaults.standard.set(nil, forKey: "JIRA_CREATEMETA_CACHE")
             UserDefaults.standard.set(host,forKey: "JIRA_HOST")
@@ -145,7 +145,6 @@ public class JIRA {
     }
     
     private func launchCreateScreen(defaultFields:[String:Any]? = nil){
-        
         guard let rootController = UIApplication.shared.keyWindow?.rootViewController else {
             return
         }
@@ -235,19 +234,18 @@ public class JIRA {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "GET"
         let task = session(username, password).dataTask(with:request) { data, response, error in
-            
-            if let _ = response as? HTTPURLResponse {
-                do {
-                    _ = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
-                    self.username = username
-                    self.password = password
-                    completion(true, nil)
-                } catch {
-                    print("error serializing JSON: \(error)")
-                    completion(false,"Could not authenticate you. You may need to login on the web to reset captcha before trying again.")
-                }
-            }else{
+            guard  let _ = response as? HTTPURLResponse else {
                 completion(false,"Could connect to JIRA. Check your configurations.")
+                return
+            }
+            do {
+                _ = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)  as? NSDictionary
+                self.username = username
+                self.password = password
+                completion(true, nil)
+            } catch {
+                print("error serializing JSON: \(error)")
+                completion(false,"Could not authenticate you with username \(username) and password.")
             }
         }
         task.resume()
