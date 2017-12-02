@@ -152,7 +152,7 @@ class JIRAJQLValue:JIRAEntity,DisplayClass{
 class JIRALabel:JIRAEntity,DisplayClass{
     var labelVal:String?
     var html:String?
-    required public override init() {
+    required public init() {
         super.init()
     }
     
