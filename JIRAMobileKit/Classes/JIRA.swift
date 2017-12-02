@@ -244,8 +244,15 @@ public class JIRA {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpMethod = "GET"
         let task = session(username, password).dataTask(with:request) { data, response, error in
-            guard  let _ = response as? HTTPURLResponse else {
+            guard let httpURLResponse = response as? HTTPURLResponse else {
                 completion(false,"Could connect to JIRA. Check your configurations.")
+                return
+            }
+            if httpURLResponse.statusCode > 500 {
+                completion(false,"Internal Server Error Occured.")
+                return
+            }else if httpURLResponse.statusCode > 400 {
+                completion(false,"Not found or no permission to access url")
                 return
             }
             do {
