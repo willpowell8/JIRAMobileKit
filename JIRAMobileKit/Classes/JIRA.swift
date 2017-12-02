@@ -102,6 +102,16 @@ public class JIRA {
     
     //
     public func setup(host:String, project:String, defaultIssueType:String? = "Bug", defaultValues:[String:Any]? = nil){
+        guard !host.isEmpty, URL(string:host) != nil else {
+            print("JIRAKIT ERROR - Host is invalid, must be a url")
+            return
+        }
+        
+        guard project != "[[PROJECT_KEY]]" else {
+            print("JIRAKIT ERROR - Project key not Set")
+            return
+        }
+        
         var shouldReset = false
         if let originalHost = UserDefaults.standard.string(forKey: "JIRA_HOST"), let originalProject = UserDefaults.standard.string(forKey: "JIRA_PROJECT") {
             if originalHost != host || project != originalProject {
