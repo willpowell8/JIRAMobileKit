@@ -22,6 +22,7 @@ it, simply add the following line to your Podfile:
 pod "JIRAMobileKit"
 ```
 
+## Configuring
 To start JIRA you can setup the JIRA connection using the following command:
 
 ```swift
@@ -32,11 +33,11 @@ The parameters you should use:
 - [[PROJECT_KEY]] - this is the short key related to your project. Note your tickets for a project get created like [[PROJECT_KEY]]-TicketNumber
 - [[DEFAULT_ISSUE_TYPE]] - (optional) this is the name of your ticket type. By default it is set as Bug.
 
+## Raising an issue
 Then to raise a JIRA issue:
 ```swift
 JIRA.shared.raise()
 ```
-
 
 ## Author
 
