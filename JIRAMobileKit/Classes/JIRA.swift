@@ -140,7 +140,15 @@ public class JIRA {
         
         let loginVC = JIRALoginViewController(nibName: "JIRALoginViewController", bundle: JIRA.getBundle())
         loginVC.onLoginCompletionBlock = completion
-        rootController.present(loginVC, animated: true, completion: nil)
+        let nav = UINavigationController(rootViewController: loginVC);
+        nav.navigationBar.barStyle = .blackOpaque
+        nav.navigationBar.tintColor = UIColor.white
+        nav.navigationBar.barTintColor = JIRA.MainColor
+        nav.navigationBar.titleTextAttributes = [NSForegroundColorAttributeName: UIColor.white]
+        nav.navigationBar.isTranslucent = false
+        nav.navigationBar.isOpaque = true
+        
+        rootController.present(nav, animated: true, completion: nil)
     }
     
     public func raise(defaultFields:[String:Any]? = nil, withScreenshot  screenshot:Bool = true){

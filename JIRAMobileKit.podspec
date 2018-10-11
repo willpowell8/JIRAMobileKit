@@ -39,5 +39,4 @@ Create and raise bugs in JIRA direct from device with in built auto completion o
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
   s.dependency 'MBProgressHUD'
-    s.dependency 'OAuthSwift'
 end

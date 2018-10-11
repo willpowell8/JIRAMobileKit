@@ -15,7 +15,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         //JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
-        JIRA.shared.setup(host: "https://tracking.keytree.net", project: "KIT", defaultIssueType: "Keytree raised defect")
+        JIRA.shared.setup(host: "https://tracking.keytree.cloud", project: "KIT", defaultIssueType: "Keytree raised defect")
         //JIRA.shared.setup(host: "https://holtrenfrew.atlassian.net", project: "HSD")
         //JIRA.shared.setup(host: "https://burberry.atlassian.net", project: "RETAIL")
         //JIRA.shared.preAuth(username:"Holts360.User@holtrenfrew.com", password:"R3nfr3w99")
@@ -104,7 +104,7 @@ class ViewController: UIViewController {
             })
             
             if point.x > minX && point.x < maxX {
-                JIRA.shared.raise(defaultFields: ["attachment":createPDF()])
+                JIRA.shared.raise(defaultFields: nil, withScreenshot: false)//["attachment":createPDF()])
             }
         }
     }

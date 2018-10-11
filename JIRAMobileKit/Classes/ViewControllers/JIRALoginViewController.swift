@@ -27,8 +27,11 @@ class JIRALoginViewController: UIViewController,UITextFieldDelegate {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.navigationItem.title = "JIRA Login"
         hostLabel.text = JIRA.shared.host
         projectLabel.text = JIRA.shared.project
+        let cancelButton = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(close))
+        self.navigationItem.leftBarButtonItem = cancelButton
         // Do any additional setup after loading the view.
     }
     
