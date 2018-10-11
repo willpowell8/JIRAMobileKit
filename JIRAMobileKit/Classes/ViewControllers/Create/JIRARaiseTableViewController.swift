@@ -84,6 +84,7 @@ class JIRARaiseTableViewController: UITableViewController {
             }else{
                 self.issueType = project?.issueTypes?[0]
             }
+            // todo when no issue type is available
             hud.hide(animated: true)
             self.tableView.reloadData()
         })

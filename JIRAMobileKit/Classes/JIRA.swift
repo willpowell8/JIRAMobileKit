@@ -143,18 +143,18 @@ public class JIRA {
         rootController.present(loginVC, animated: true, completion: nil)
     }
     
-    public func raise(defaultFields:[String:Any]? = nil){
-       if JIRA.shared.username == nil || JIRA.shared.password == nil {
+    public func raise(defaultFields:[String:Any]? = nil, withScreenshot  screenshot:Bool = true){
+        if JIRA.shared.username == nil || JIRA.shared.password == nil {
             doLogin {
-                self.launchCreateScreen(defaultFields: defaultFields)
+                self.launchCreateScreen(defaultFields: defaultFields, withScreenshot:screenshot)
             }
-       }else{
-            launchCreateScreen(defaultFields: defaultFields)
+        }else{
+            launchCreateScreen(defaultFields: defaultFields, withScreenshot:screenshot)
         }
         
     }
     
-    private func launchCreateScreen(defaultFields:[String:Any]? = nil){
+    private func launchCreateScreen(defaultFields:[String:Any]? = nil, withScreenshot  screenshot:Bool = true){
         guard let rootController = UIApplication.shared.keyWindow?.rootViewController else {
             return
         }
@@ -170,7 +170,7 @@ public class JIRA {
         }
         
         // Add Image
-        if let image = UIApplication.shared.keyWindow?.capture() {
+        if screenshot == true, let image = UIApplication.shared.keyWindow?.capture() {
             if let attachments = fields["attachment"] {
                 if var attachmentAry = attachments as? [Any] {
                     attachmentAry.insert(image, at: 0)
@@ -452,9 +452,19 @@ public class JIRA {
     
     internal func createMeta(_ completion: @escaping (_ error:Bool, _ project:JIRAProject?) -> Void){
         if let cachedData = UserDefaults.standard.data(forKey: "JIRA_CREATEMETA_CACHE") {
-            processCreateMetaData(cachedData, completion: completion)
+            processCreateMetaData(cachedData, completion: { [weak self] (err, project) in
+                guard err == false else {
+                    self?.continueCreateMeta(completion)
+                    return
+                }
+                self?.continueCreateMeta(completion)
+            })
             return
         }
+        continueCreateMeta(completion)
+    }
+    
+    internal func continueCreateMeta(_ completion: @escaping (_ error:Bool, _ project:JIRAProject?) -> Void){
         let url = URL(string: "\(host!)\(JIRA.url_issue_createmeta)&projectKeys=\(self.project!)")!
         var request = URLRequest(url: url)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -525,19 +535,19 @@ public class JIRA {
             })
             if currentProject?.count == 1 {
                 DispatchQueue.main.async {
-                    completion(true,currentProject?[0])
+                    completion(false,currentProject?[0])
                 }
-                
             }else{
+                // todo when no project is found error
                 DispatchQueue.main.async {
-                    completion(false,nil)
+                    completion(true,nil)
                 }
             }
             
         } catch {
             print("error serializing JSON: \(error)")
             DispatchQueue.main.async {
-                completion(false,nil)
+                completion(true,nil)
             }
         }
     }

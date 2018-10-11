@@ -28,12 +28,10 @@ class JIRAImageCell:JIRACell,UICollectionViewDelegate, UICollectionViewDataSourc
         //self.addSubview(imageViewArea!)
         //imageViewArea?.translatesAutoresizingMaskIntoConstraints = false
         collectionView?.translatesAutoresizingMaskIntoConstraints = false
-        if #available(iOS 9.0, *) {
-            collectionView?.leftAnchor.constraint(equalTo: self.textLabel!.rightAnchor, constant: 10).isActive = true
-            collectionView?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -33).isActive = true
-            collectionView?.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -1).isActive = true
-            collectionView?.topAnchor.constraint(equalTo: self.topAnchor, constant: 1).isActive = true
-        }
+        collectionView?.leftAnchor.constraint(equalTo: self.textLabel!.rightAnchor, constant: 10).isActive = true
+        collectionView?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -33).isActive = true
+        collectionView?.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -1).isActive = true
+        collectionView?.topAnchor.constraint(equalTo: self.topAnchor, constant: 1).isActive = true
         collectionView?.delegate = self
         collectionView?.dataSource = self
         collectionView?.backgroundColor = .clear
@@ -115,16 +113,14 @@ class JIRAImageCollectionCell:UICollectionViewCell{
         name.textAlignment = .center
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
-        if #available(iOS 9.0, *) {
-            name.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 3).isActive = true
-            name.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -3).isActive = true
-            name.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -1).isActive = true
-            name.heightAnchor.constraint(equalToConstant: 20) .isActive = true
+        name.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 3).isActive = true
+        name.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -3).isActive = true
+        name.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -1).isActive = true
+        name.heightAnchor.constraint(equalToConstant: 20) .isActive = true
             
-            imageView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 0).isActive = true
-            imageView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: 0).isActive = true
-            imageView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -23).isActive = true
-            imageView.topAnchor.constraint(equalTo: self.topAnchor, constant: 0).isActive = true
-        }
+        imageView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 0).isActive = true
+        imageView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: 0).isActive = true
+        imageView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -23).isActive = true
+        imageView.topAnchor.constraint(equalTo: self.topAnchor, constant: 0).isActive = true
     }
 }

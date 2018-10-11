@@ -28,7 +28,7 @@ Create and raise bugs in JIRA direct from device with in built auto completion o
   s.source           = { :git => 'https://github.com/willpowell8/JIRAMobileKit.git', :tag => s.version.to_s }
   s.social_media_url = 'https://twitter.com/willpowelluk'
 
-  s.ios.deployment_target = '8.0'
+  s.ios.deployment_target = '9.0'
 
   s.source_files = 'JIRAMobileKit/Classes/**/*'
   
@@ -39,4 +39,5 @@ Create and raise bugs in JIRA direct from device with in built auto completion o
   # s.public_header_files = 'Pod/Classes/**/*.h'
   # s.frameworks = 'UIKit', 'MapKit'
   s.dependency 'MBProgressHUD'
+    s.dependency 'OAuthSwift'
 end

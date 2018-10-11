@@ -28,12 +28,10 @@ class JIRATextFieldCell:JIRACell{
         self.addSubview(textField!)
         textField?.translatesAutoresizingMaskIntoConstraints = false
         
-        if #available(iOS 9.0, *) {
-            textField?.leftAnchor.constraint(equalTo: self.textLabel!.rightAnchor, constant: 10).isActive = true
-            textField?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -30).isActive = true
-            textField?.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
-            textField?.heightAnchor.constraint(equalToConstant: 20).isActive = true
-        }
+        textField?.leftAnchor.constraint(equalTo: self.textLabel!.rightAnchor, constant: 10).isActive = true
+        textField?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -30).isActive = true
+        textField?.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+        textField?.heightAnchor.constraint(equalToConstant: 20).isActive = true
         textField?.textColor = JIRA.MainColor
         self.textLabel?.backgroundColor = .red
         textField?.addTarget(self, action: #selector(didChangeTextfield), for: UIControlEvents.editingChanged)
