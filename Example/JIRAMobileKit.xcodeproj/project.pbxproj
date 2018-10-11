@@ -30,7 +30,7 @@
 
 /* Begin PBXFileReference section */
 		2D0A7810D67FCF6AA5344179 /* Pods-JIRAMobileKit_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JIRAMobileKit_Tests.release.xcconfig"; path = "Pods/Target Support Files/Pods-JIRAMobileKit_Tests/Pods-JIRAMobileKit_Tests.release.xcconfig"; sourceTree = "<group>"; };
-		2EE444396C3B682D50EE7127 /* JIRAMobileKit.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = JIRAMobileKit.podspec; path = ../JIRAMobileKit.podspec; sourceTree = "<group>"; };
+		2EE444396C3B682D50EE7127 /* JIRAMobileKit.podspec */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = JIRAMobileKit.podspec; path = ../JIRAMobileKit.podspec; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
 		3D07A1FDAFDF1DFA635FA624 /* Pods-JIRAMobileKit_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-JIRAMobileKit_Example.debug.xcconfig"; path = "Pods/Target Support Files/Pods-JIRAMobileKit_Example/Pods-JIRAMobileKit_Example.debug.xcconfig"; sourceTree = "<group>"; };
 		5C4B257110C3356F77B5A015 /* Pods_JIRAMobileKit_Example.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_JIRAMobileKit_Example.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		607FACD01AFB9204008FA782 /* JIRAMobileKit_Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = JIRAMobileKit_Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
