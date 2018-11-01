@@ -17,7 +17,7 @@ class JIRAOptionCell:JIRACell{
             if let element = data[identifier] as? DisplayClass {
                 self.detailTextLabel?.text = element.label
             }else if let elements = data[identifier] as? [DisplayClass] {
-                let strs = elements.flatMap({ (element) -> String? in
+                let strs = elements.compactMap({ (element) -> String? in
                     return element.label
                 })
                 self.detailTextLabel?.text = strs.joined(separator: ", ")

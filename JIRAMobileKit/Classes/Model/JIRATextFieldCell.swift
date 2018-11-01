@@ -34,7 +34,7 @@ class JIRATextFieldCell:JIRACell{
         textField?.heightAnchor.constraint(equalToConstant: 20).isActive = true
         textField?.textColor = JIRA.MainColor
         self.textLabel?.backgroundColor = .red
-        textField?.addTarget(self, action: #selector(didChangeTextfield), for: UIControlEvents.editingChanged)
+        textField?.addTarget(self, action: #selector(didChangeTextfield), for: UIControl.Event.editingChanged)
     }
     
     override func applyData(data:[String:Any]){
@@ -50,7 +50,7 @@ class JIRATextFieldCell:JIRACell{
         self.textField?.resignFirstResponder()
     }
     
-    func didChangeTextfield(){
+    @objc func didChangeTextfield(){
         delegate?.jiraSelected(field: field, item: self.textField?.text)
     }
 }

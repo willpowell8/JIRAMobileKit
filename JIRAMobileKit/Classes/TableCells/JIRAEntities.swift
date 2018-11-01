@@ -247,7 +247,7 @@ class JIRAField{
             self.name = name
         }
         if let operations = data["operations"] as? [String]{
-            let ops = operations.flatMap({ (operation) -> JIRAOperations? in
+            let ops = operations.compactMap({ (operation) -> JIRAOperations? in
                 return JIRAOperations(rawValue:operation)
             })
             self.operations = ops

@@ -14,7 +14,11 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
+        //JIRA.shared.setup(host: "[[JIRA_URL]]", project: "[[PROJECT_KEY]]", defaultIssueType: "[[DEFAULT_ISSUE_TYPE]]")
+        JIRA.shared.setup(host: "https://tracking.keytree.cloud", project: "KIT", defaultIssueType: "Keytree raised defect")
+        //JIRA.shared.setup(host: "https://holtrenfrew.atlassian.net", project: "HSD")
+        //JIRA.shared.setup(host: "https://burberry.atlassian.net", project: "RETAIL")
+        //JIRA.shared.preAuth(username:"Holts360.User@holtrenfrew.com", password:"R3nfr3w99")
         JIRA.shared.globalDefaultFields = ["environment":"user: example@test.com"]
     }
 
@@ -60,9 +64,9 @@ class ViewController: UIViewController {
         let textColor = UIColor.black
             
         let textFontAttributes = [
-                NSFontAttributeName: font!,
-                NSForegroundColorAttributeName: textColor,
-                NSParagraphStyleAttributeName: paragraphStyle
+            NSAttributedString.Key.font: font!,
+            NSAttributedString.Key.foregroundColor: textColor,
+            NSAttributedString.Key.paragraphStyle: paragraphStyle
         ]
             
         let text = "HELLO WORLD"
@@ -72,7 +76,7 @@ class ViewController: UIViewController {
         return "file://"+pathForPDF
     }
     
-    func navBarTapped(_ tapRecognizer: UITapGestureRecognizer){
+    @objc func navBarTapped(_ tapRecognizer: UITapGestureRecognizer){
         if tapRecognizer.state == .recognized {
             let subviews = navigationController?.navigationBar.subviews
             let point = tapRecognizer.location(in: self.navigationController?.navigationBar)

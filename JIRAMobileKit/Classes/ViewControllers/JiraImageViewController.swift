@@ -53,7 +53,7 @@ class JiraImageViewController: UIViewController {
     
 
     
-    func apply(){
+    @objc func apply(){
         self.delegate?.updateImage(image: self.canvas!.image!,attachmentID: attachmentID ?? 0)
         self.navigationController?.popViewController(animated: true)
     }

@@ -103,7 +103,7 @@ class JIRASubTableViewController: UITableViewController {
         }
     }
     
-    func done(){
+    @objc func done(){
         delegate?.jiraSelected(field:self.field, item: selectedFields)
         navigationController?.popViewController(animated: true)
     }
@@ -238,7 +238,7 @@ class JIRASubTableViewController: UITableViewController {
 extension JIRASubTableViewController: UISearchResultsUpdating {
     // MARK: - UISearchResultsUpdating Delegate
     func updateSearchResults(for searchController: UISearchController) {
-        if let text = searchController.searchBar.text, text.characters.count > 0 {
+        if let text = searchController.searchBar.text, text.count > 0 {
             elementsFiltered = elements.filter({ (display) -> Bool in
                 if let label = display.label {
                     return label.contains(text)

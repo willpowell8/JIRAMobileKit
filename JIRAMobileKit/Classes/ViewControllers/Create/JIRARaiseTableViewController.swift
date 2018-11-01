@@ -133,11 +133,11 @@ class JIRARaiseTableViewController: UITableViewController {
         })
     }
     
-    func close(){
+    @objc func close(){
         self.dismiss(animated: true, completion: nil)
     }
     
-    func save(){
+    @objc func save(){
         // todo validate before save
         
         cells.forEach { (cell) in
@@ -150,11 +150,11 @@ class JIRARaiseTableViewController: UITableViewController {
             DispatchQueue.main.async {
                 hud.hide(animated: true)
                 if error != nil {
-                    let alert = UIAlertController(title: "Error", message: error, preferredStyle: UIAlertControllerStyle.alert)
-                    alert.addAction(UIAlertAction(title: "OK", style: UIAlertActionStyle.default, handler: nil))
+                    let alert = UIAlertController(title: "Error", message: error, preferredStyle: UIAlertController.Style.alert)
+                    alert.addAction(UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler: nil))
                     self.present(alert, animated: true, completion: nil)
                 }else{
-                    let alert = UIAlertController(title: "Created", message: key, preferredStyle: UIAlertControllerStyle.alert)
+                    let alert = UIAlertController(title: "Created", message: key, preferredStyle: UIAlertController.Style.alert)
                     let action = UIAlertAction(title: "OK", style: .default, handler: { (action) in
                         self.dismiss(animated: true, completion: nil)
                     })

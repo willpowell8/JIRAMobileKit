@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'JIRAMobileKit'
-  s.version          = '3.0.11'
+  s.version          = '4.2.1'
   s.summary          = 'JIRA bug reporting for iOS written in swift'
 
 # This description is used to generate tags and improve search results.
@@ -29,6 +29,7 @@ Create and raise bugs in JIRA direct from device with in built auto completion o
   s.social_media_url = 'https://twitter.com/willpowelluk'
 
   s.ios.deployment_target = '9.0'
+  s.swift_version = '4.2'
 
   s.source_files = 'JIRAMobileKit/Classes/**/*'
   
