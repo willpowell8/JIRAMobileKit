@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'JIRAMobileKit'
-  s.version          = '4.2.1'
+  s.version          = '4.2.2'
   s.summary          = 'JIRA bug reporting for iOS written in swift'
 
 # This description is used to generate tags and improve search results.
