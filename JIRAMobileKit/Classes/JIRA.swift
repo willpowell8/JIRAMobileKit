@@ -152,15 +152,15 @@ public class JIRA {
         
         let loginVC = JIRALoginViewController(nibName: "JIRALoginViewController", bundle: JIRA.getBundle())
         loginVC.onLoginCompletionBlock = completion
-        let nav = UINavigationController(rootViewController: loginVC);
+        /*let nav = UINavigationController(rootViewController: loginVC);
         nav.navigationBar.barStyle = .blackOpaque
         nav.navigationBar.tintColor = UIColor.white
         nav.navigationBar.barTintColor = JIRA.MainColor
         nav.navigationBar.titleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
         nav.navigationBar.isTranslucent = false
-        nav.navigationBar.isOpaque = true
+        nav.navigationBar.isOpaque = true*/
         
-        rootController.present(nav, animated: true, completion: nil)
+        rootController.present(loginVC, animated: true, completion: nil)
     }
     
     public func doOauth(completion:@escaping () -> Void){
