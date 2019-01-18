@@ -38,7 +38,7 @@ class JIRAImageCell:JIRACell,UICollectionViewDelegate, UICollectionViewDataSourc
         //imageViewArea?.translatesAutoresizingMaskIntoConstraints = false
         collectionView?.translatesAutoresizingMaskIntoConstraints = false
         collectionView?.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
-        collectionView?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: 0).isActive = true
+        collectionView?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -30).isActive = true
         collectionView?.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -1).isActive = true
         collectionView?.topAnchor.constraint(equalTo: self.label.bottomAnchor, constant: 1).isActive = true
         collectionView?.delegate = self
@@ -108,10 +108,21 @@ class JIRAImageCollectionCell:UICollectionViewCell{
             imageView.image = image
             name.text = "Image"
         }else if let urlStr = any as? String, let url = URL(string:urlStr){
+            imageView.image = getImage(url.pathExtension)
+            imageView.contentMode = .bottom
             name.text =  url.lastPathComponent
         }else if let url = any as? URL{
+            imageView.image = getImage(url.pathExtension)
+            imageView.contentMode = .bottom
             name.text =  url.lastPathComponent
         }
+    }
+    
+    func getImage(_ extensionStr:String)->UIImage? {
+        let podBundle = Bundle(for: JIRAImageCell.self)
+        let bundleURL = podBundle.url(forResource: "JIRAMobileKit" , withExtension: "bundle")
+        let bundle = Bundle(url: bundleURL!)!
+        return UIImage(named: extensionStr, in: bundle, compatibleWith: nil)
     }
     
     func setup(){
@@ -119,12 +130,13 @@ class JIRAImageCollectionCell:UICollectionViewCell{
         self.addSubview(imageView)
         name.translatesAutoresizingMaskIntoConstraints = false
         name.textAlignment = .center
+        name.font = UIFont.systemFont(ofSize: 12)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFit
         name.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 3).isActive = true
         name.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -3).isActive = true
         name.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -1).isActive = true
-        name.heightAnchor.constraint(equalToConstant: 20) .isActive = true
+        name.heightAnchor.constraint(equalToConstant: 13) .isActive = true
             
         imageView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 0).isActive = true
         imageView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: 0).isActive = true
