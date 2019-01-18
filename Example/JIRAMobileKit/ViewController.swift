@@ -106,7 +106,7 @@ class ViewController: UIViewController {
             })
             
             if point.x > minX && point.x < maxX {
-                JIRA.shared.raise(defaultFields: nil, withScreenshot: false)//["attachment":createPDF()])
+                JIRA.shared.raise(defaultFields: ["attachment":createPDF()], withScreenshot: true)//)
             }
         }
     }

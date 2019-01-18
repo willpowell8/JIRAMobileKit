@@ -15,12 +15,21 @@ class JIRAImageCell:JIRACell,UICollectionViewDelegate, UICollectionViewDataSourc
     var collectionView:UICollectionView?
     var attachments:[Any]?
     var delegateSelection:JIRAImageCellDelegate?
+    var label = UILabel()
     
     override func setup(){
+        
+        self.addSubview(label)
+        label.text = field?.name
+        self.textLabel?.text = ""
+        self.textLabel?.isHidden = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 16).isActive = true
+        label.topAnchor.constraint(equalTo: self.topAnchor, constant:10).isActive = true
         self.accessoryType = .disclosureIndicator
         let flow = UICollectionViewFlowLayout()
         flow.scrollDirection = .horizontal
-        flow.itemSize = CGSize(width: 130, height: 170)
+        flow.itemSize = CGSize(width: 120, height: 150)
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: flow)
         self.addSubview(collectionView!)
         //imageViewArea = UIImageView()
@@ -28,15 +37,14 @@ class JIRAImageCell:JIRACell,UICollectionViewDelegate, UICollectionViewDataSourc
         //self.addSubview(imageViewArea!)
         //imageViewArea?.translatesAutoresizingMaskIntoConstraints = false
         collectionView?.translatesAutoresizingMaskIntoConstraints = false
-        collectionView?.leftAnchor.constraint(equalTo: self.textLabel!.rightAnchor, constant: 10).isActive = true
-        collectionView?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -33).isActive = true
+        collectionView?.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 10).isActive = true
+        collectionView?.rightAnchor.constraint(equalTo: self.rightAnchor, constant: 0).isActive = true
         collectionView?.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -1).isActive = true
-        collectionView?.topAnchor.constraint(equalTo: self.topAnchor, constant: 1).isActive = true
+        collectionView?.topAnchor.constraint(equalTo: self.label.bottomAnchor, constant: 1).isActive = true
         collectionView?.delegate = self
         collectionView?.dataSource = self
         collectionView?.backgroundColor = .clear
         collectionView?.register(JIRAImageCollectionCell.self, forCellWithReuseIdentifier: "Attachment")
-        self.backgroundColor = UIColor.init(white: 0.95, alpha: 1.0)
     }
     
     override func applyData(data:[String:Any]){
@@ -98,7 +106,7 @@ class JIRAImageCollectionCell:UICollectionViewCell{
     func applyData(_ any:Any){
         if let image = any as? UIImage {
             imageView.image = image
-            name.text = "PNG"
+            name.text = "Image"
         }else if let urlStr = any as? String, let url = URL(string:urlStr){
             name.text =  url.lastPathComponent
         }else if let url = any as? URL{
