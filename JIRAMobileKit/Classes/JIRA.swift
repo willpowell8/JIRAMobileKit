@@ -9,10 +9,22 @@
 import Foundation
 import MBProgressHUD
 
+public enum JIRAAuthentication {
+    case basic
+    case oauth
+}
+
 public class JIRA {
     
     // Jira singleton instance
     public static var shared = JIRA()
+    
+    public var authenticationMethod:JIRAAuthentication = .basic
+    
+    public var preferredOrder = [String]() // This is how we specify the order of fields
+    
+    public var stringFieldsAsTextView = [String]()
+    public var defaultToOnlyRequired:Bool = true
 
     // END POINTS
     private static let url_issue  = "rest/api/2/issue";
@@ -151,15 +163,52 @@ public class JIRA {
         rootController.present(nav, animated: true, completion: nil)
     }
     
+    public func doOauth(completion:@escaping () -> Void){
+        /*let oauthswift = OAuth2Swift(
+            consumerKey:    "E053rqqra4mXVnfhEHRYRecir5bW3K38",
+            consumerSecret: "dqFbY9HrYVqAyzuFR3UGDxYUlf0zDCmVRlZFwJjYUEUJL2g-2kErIpVbKd3dRjYZ",
+            authorizeUrl:   "https://auth.atlassian.com/authorize",
+            accessTokenUrl: "https://auth.atlassian.com/oauth/token",
+            responseType:   "code"
+        )
+        
+        oauthswift.allowMissingStateCheck = true
+        //2
+        guard let vc = UIApplication.shared.keyWindow?.rootViewController else {
+            return
+        }
+        oauthswift.authorizeURLHandler = SafariURLHandler(viewController: vc, oauthSwift: oauthswift)
+        
+        guard let rwURL = URL(string: "jiramobilekit://oauth2Callback") else { return }
+        
+        //3
+        oauthswift.authorize(withCallbackURL: rwURL, scope: "read:jira-user read:jira-work write:jira-work", state: "", success: {
+            (credential, response, parameters) in
+            print("Logged in")
+        }, failure: { (error) in
+            print("Failed")
+        })*/
+    }
+    
     public func raise(defaultFields:[String:Any]? = nil, withScreenshot  screenshot:Bool = true){
-        if JIRA.shared.username == nil || JIRA.shared.password == nil {
-            doLogin {
+        switch(self.authenticationMethod){
+        case .basic:
+            if JIRA.shared.username == nil || JIRA.shared.password == nil {
+                doLogin {
+                    self.launchCreateScreen(defaultFields: defaultFields, withScreenshot:screenshot)
+                }
+                return
+            }
+            break
+        case .oauth:
+            doOauth{
                 self.launchCreateScreen(defaultFields: defaultFields, withScreenshot:screenshot)
             }
-        }else{
-            launchCreateScreen(defaultFields: defaultFields, withScreenshot:screenshot)
+            return
+            break
         }
         
+        launchCreateScreen(defaultFields: defaultFields, withScreenshot:screenshot)
     }
     
     private func launchCreateScreen(defaultFields:[String:Any]? = nil, withScreenshot  screenshot:Bool = true){

@@ -102,12 +102,14 @@ class JIRARaiseTableViewController: UITableViewController {
         issueType?.fields?.forEach({ (field) in
             let validField = field.required || (field.operations?.contains(JIRAOperations.set))! || field.identifier! == "attachment"
             if validField {
+                var cell:JIRACell?
                 if let type = field.schema?.type {
-                    var cell:JIRACell?
                     switch(type){
                     case .string:
                         if let allowedValues = field.allowedValues, allowedValues.count > 0 {
                             cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
+                        }else if let identifier = field.identifier, JIRA.shared.stringFieldsAsTextView.contains(identifier){
+                            cell = JIRATextViewCell()
                         }else{
                             cell = JIRATextFieldCell(style: .value1, reuseIdentifier: "cell")
                         }
@@ -122,12 +124,16 @@ class JIRARaiseTableViewController: UITableViewController {
                     default:
                         cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
                     }
-                    if let cellV = cell {
-                        cellV.delegate = self
-                        cellV.field = field
-                        cellV.start(field: field, data: self.data)
-                        self.cells.append(cellV)
-                    }
+                    
+                }else{
+                    cell = JIRAOptionCell(style: .value1, reuseIdentifier: "cell")
+                }
+                
+                if let cellV = cell {
+                    cellV.delegate = self
+                    cellV.field = field
+                    cellV.start(field: field, data: self.data)
+                    self.cells.append(cellV)
                 }
             }
         })

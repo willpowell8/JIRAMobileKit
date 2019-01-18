@@ -26,6 +26,7 @@ enum JIRASchemaType:String {
     case user = "user"
     case array = "array"
     case number = "number"
+    case option = "option"
 }
 
 enum JIRAOperations:String {
@@ -296,8 +297,22 @@ class JIRAIssueType{
         }
         var fields = [JIRAField]()
         if let jiraFields = data["fields"] as? [AnyHashable:Any] {
+            JIRA.shared.preferredOrder.forEach { (identifier) in
+                if let v = jiraFields[identifier] as? [AnyHashable:Any] {
+                    let field = JIRAField()
+                    field.identifier = identifier
+                    field.applyData(data: v)
+                    fields.append(field)
+                }
+            }
             jiraFields.forEach({ (key,value) in
-                if let v = value as? [AnyHashable:Any], let identifier = key as? String {
+                guard let identifier = key as? String else {
+                    return
+                }
+                guard !JIRA.shared.preferredOrder.contains(identifier) else {
+                    return
+                }
+                if let v = value as? [AnyHashable:Any] {
                     let field = JIRAField()
                     field.identifier = identifier
                     field.applyData(data: v)
