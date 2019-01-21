@@ -1,5 +1,6 @@
 # JIRAMobileKIT
 Here is a complete log of what has been changed in each version. Currently this library it iterating quickly to add features and functionality.
+#### 4.2.3 - Fixed image location
 #### 4.2.2 - update of login screen, place holder images, textviews fields, preferredOrder
 #### 4.2.1 - bug fixes
 #### 4.2.0 - updates to 4.2 swift version
