@@ -40,6 +40,7 @@ class JIRATextViewCell:JIRACell{
         textField?.topAnchor.constraint(equalTo: self.label.bottomAnchor, constant:-3).isActive = true
         textField?.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant:0).isActive = true
         textField?.textColor = JIRA.MainColor
+        textField?.delegate = self
     }
     
     override func applyData(data:[String:Any]){
