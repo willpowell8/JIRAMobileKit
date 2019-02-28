@@ -276,12 +276,14 @@ extension JIRARaiseTableViewController:JIRAImageCellDelegate{
             quickLookSelected = [filePreview]
             quickLookController.delegate = self
             quickLookController.dataSource = self
+            quickLookController.reloadData()
             self.present(quickLookController, animated: true, completion: nil)
         }else if let url =  any as? URL{
             let filePreview = url as QLPreviewItem
             quickLookSelected = [filePreview]
             quickLookController.delegate = self
             quickLookController.dataSource = self
+            quickLookController.reloadData()
             self.present(quickLookController, animated: true, completion: nil)
         }
     }
