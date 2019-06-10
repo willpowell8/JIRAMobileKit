@@ -109,11 +109,9 @@ class JIRAImageCollectionCell:UICollectionViewCell{
             name.text = "Image"
         }else if let urlStr = any as? String, let url = URL(string:urlStr){
             imageView.image = getImage(url.pathExtension)
-            imageView.contentMode = .bottom
             name.text =  url.lastPathComponent
         }else if let url = any as? URL{
             imageView.image = getImage(url.pathExtension)
-            imageView.contentMode = .bottom
             name.text =  url.lastPathComponent
         }
     }

@@ -305,20 +305,24 @@ class JIRAIssueType{
                     fields.append(field)
                 }
             }
-            jiraFields.forEach({ (key,value) in
+            var fieldsKeys = jiraFields.compactMap { (key, value) -> String? in
                 guard let identifier = key as? String else {
-                    return
+                    return nil
                 }
                 guard !JIRA.shared.preferredOrder.contains(identifier) else {
-                    return
+                    return nil
                 }
-                if let v = value as? [AnyHashable:Any] {
+                return identifier
+            }
+            fieldsKeys = fieldsKeys.sorted()
+            fieldsKeys.forEach { (f) in
+                if let v = jiraFields[f] as? [AnyHashable:Any] {
                     let field = JIRAField()
-                    field.identifier = identifier
+                    field.identifier = f
                     field.applyData(data: v)
                     fields.append(field)
                 }
-            })
+            }
         }
         self.fields = fields
     }
