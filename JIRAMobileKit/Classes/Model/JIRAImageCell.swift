@@ -31,6 +31,7 @@ class JIRAImageCell:JIRACell,UICollectionViewDelegate, UICollectionViewDataSourc
         flow.scrollDirection = .horizontal
         flow.itemSize = CGSize(width: 120, height: 150)
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: flow)
+        collectionView?.backgroundColor = .clear
         self.addSubview(collectionView!)
         //imageViewArea = UIImageView()
         //imageViewArea?.backgroundColor = .clear
